@@ -1,0 +1,136 @@
+@extends('instructor.layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    {{-- Breadcrumb --}}
+    <nav class="flex items-center space-x-2 text-sm mb-6">
+        <a href="{{ route('instructor.dashboard') }}" class="text-gray-400 hover:text-[#d4af37] transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+        </a>
+        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+        <span class="text-[#d4af37] font-medium">Dashboard</span>
+    </nav>
+
+    {{-- Header --}}
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6 mb-8">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#b8962e] flex items-center justify-center shadow-lg shadow-[#d4af37]/20">
+                <svg class="w-7 h-7 text-[#0b1221]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">Dashboard Instruktur</h1>
+                <p class="text-sm text-gray-400">Selamat datang, {{ $user->name }}</p>
+            </div>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="bg-green-900/30 border border-green-500/50 text-green-300 p-4 rounded-xl mb-6 flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="text-sm font-medium">{{ session('success') }}</span>
+        </div>
+    @endif
+
+    {{-- Kelas Section --}}
+    <div class="bg-gradient-to-b from-[#0f172a] to-[#0b1221] border border-[#1e293b] rounded-2xl shadow-2xl overflow-hidden mb-8">
+        <div class="p-6 border-b border-[#1e293b] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-white">Kelas yang Diampu</h2>
+                <p class="text-sm text-gray-400">Pilih kelas untuk mengelola materi dan pertemuan</p>
+            </div>
+            <a href="{{ route('instructor.courses.index') }}" 
+               class="inline-flex justify-center items-center px-5 py-2 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] transition-all duration-200 text-xs font-bold">
+                LIHAT SEMUA
+            </a>
+        </div>
+
+        <div class="p-6">
+            @if(($courses ?? collect())->count() === 0)
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <div class="h-12 w-12 rounded-full bg-[#1e293b] flex items-center justify-center mb-3">
+                        <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <p class="text-gray-400 font-medium">Belum ada kelas yang terhubung</p>
+                    <p class="text-gray-500 text-sm mt-1">Hubungi admin untuk menambahkan kelas.</p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($courses->take(3) as $course)
+                        <div class="bg-[#0b1221] border border-[#1e293b] rounded-xl p-5 hover:border-[#d4af37]/50 transition-colors">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="h-10 w-10 rounded-lg bg-[#1e293b] border border-[#d4af37]/30 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-base font-bold text-white mb-1">
+                                {{ $course->title ?? $course->name ?? '-' }}
+                            </h3>
+                            <p class="text-sm text-gray-400 line-clamp-2 mb-4">
+                                {{ Str::limit($course->description ?? 'Tidak ada deskripsi.', 60) }}
+                            </p>
+                            <a href="{{ route('instructor.courses.show', $course->id) }}"
+                               class="inline-flex justify-center items-center w-full px-4 py-2 rounded-lg border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] transition-all duration-200 text-xs font-bold">
+                                KELOLA
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- News Section --}}
+    @if(($news ?? collect())->count() > 0)
+    <div class="bg-gradient-to-b from-[#0f172a] to-[#0b1221] border border-[#1e293b] rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-6 border-b border-[#1e293b]">
+            <h2 class="text-lg font-bold text-white">Berita & Informasi</h2>
+            <p class="text-sm text-gray-400">Informasi terbaru dari admin</p>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($news as $item)
+                    <a href="{{ route('instructor.news.show', $item->slug) }}" 
+                       class="block bg-[#0b1221] border border-[#1e293b] rounded-xl overflow-hidden hover:border-[#d4af37]/50 transition-all hover:shadow-lg hover:shadow-[#d4af37]/5 group">
+                        @if($item->image_url)
+                            <div class="aspect-video bg-[#1e293b] overflow-hidden">
+                                <img src="{{ $item->image_url }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            </div>
+                        @else
+                            <div class="aspect-video bg-[#1e293b] flex items-center justify-center">
+                                <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                </svg>
+                            </div>
+                        @endif
+                        <div class="p-4">
+                            <p class="text-[10px] text-[#d4af37] uppercase tracking-wider font-bold mb-1">
+                                {{ $item->published_at ? $item->published_at->format('d M Y') : '' }}
+                            </p>
+                            <h3 class="text-sm font-bold text-white line-clamp-2 mb-2 group-hover:text-[#d4af37] transition-colors">{{ $item->title }}</h3>
+                            <p class="text-xs text-gray-400 line-clamp-2">{{ Str::limit(strip_tags($item->content), 80) }}</p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+</div>
+@endsection

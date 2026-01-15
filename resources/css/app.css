@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Theme Variables */
+:root {
+    --navy-main: #0b1221;    /* Background Halaman */
+    --navy-card: #0f172a;    /* Background Card */
+    --navy-border: #1e293b;  /* Border Halus */
+    --gold-main: #d4af37;    /* Warna Emas Utama */
+    --gold-hover: #b8962e;   /* Warna Emas saat Hover */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--navy-main); 
+}
+::-webkit-scrollbar-thumb {
+    background: #334155; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-main); 
+}
+
+/* Checkbox Gold Style */
+[type='checkbox']:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+    background-color: var(--gold-main);
+    border-color: var(--gold-main);
+}
+[type='checkbox']:focus {
+    --tw-ring-color: var(--gold-main);
+    --tw-ring-opacity: 0.5;
+    box-shadow: 0 0 0 1px var(--tw-ring-color);
+}
+
+/* ============================================
+   PREMIUM ANIMATIONS & EFFECTS
+   ============================================ */
+
+/* Smooth Fade In Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulse Glow for Gold Elements */
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.4); }
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Button Hover Lift Effect */
+.btn-premium {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.35);
+}
+.btn-premium:active {
+    transform: translateY(0);
+}
+
+/* Card Hover Effect */
+.card-premium {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-premium:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* Table Row Hover with Glow */
+.table-row-premium {
+    transition: all 0.2s ease-in-out;
+}
+.table-row-premium:hover {
+    background: linear-gradient(90deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0.3) 100%);
+    box-shadow: inset 4px 0 0 var(--gold-main);
+}
+
+/* Input Focus Glow */
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+/* Icon Container Animation */
+.icon-container {
+    transition: all 0.3s ease;
+}
+.icon-container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px -5px rgba(212, 175, 55, 0.4);
+}
+
+/* Glassmorphism Effect */
+.glass {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Navigation Link Underline Animation */
+.nav-link-premium {
+    position: relative;
+}
+.nav-link-premium::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold-main), var(--gold-hover));
+    transition: width 0.3s ease;
+}
+.nav-link-premium:hover::after {
+    width: 100%;
+}
+
+/* Badge Pulse Animation */
+.badge-pulse {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Skeleton Loading Effect */
+.skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Modal Backdrop Blur */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* Smooth Page Transitions */
+.page-transition {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Action Button Group */
+.action-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.action-btn:hover {
+    transform: scale(1.1);
+}
+.action-btn:active {
+    transform: scale(0.95);
+}
+
+/* Status Badge */
+.status-active {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Gold Text Gradient */
+.text-gold-gradient {
+    background: linear-gradient(135deg, #d4af37, #f5d77a, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Select Dropdown Custom Arrow */
+select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+}
+
+/* Date Input Styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
+}
+
+/* File Input Styling */
+input[type="file"]::file-selector-button {
+    transition: all 0.2s ease;
+}
+input[type="file"]::file-selector-button:hover {
+    transform: translateY(-1px);
+}
