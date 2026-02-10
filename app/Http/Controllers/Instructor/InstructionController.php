@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CourseInstruction;
 use App\Models\TaskSubmission;
 use App\Models\Teacher;
-use App\Models\TrainingBatch;
 use App\Models\TrainingYear;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -23,30 +23,22 @@ class InstructionController extends Controller
         $teacher = Teacher::where('user_id', $user->id)->first();
 
         // Get all training years
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
 
         // Get filters from request
         $selectedYearId = $request->get('year', $trainingYears->first()?->id);
-        $selectedBatchId = $request->get('batch');
         $selectedClassType = $request->get('class_type', 'all');
 
-        // Get selected year and its batches
+        // Get selected year
         $selectedYear = $trainingYears->firstWhere('id', $selectedYearId);
-        $batches = $selectedYear ? $selectedYear->batches : collect();
-
-        // Auto-select first batch if none selected
-        if (!$selectedBatchId && $batches->count() > 0) {
-            $selectedBatchId = $batches->first()->id;
-        }
-        $selectedBatch = $batches->firstWhere('id', $selectedBatchId);
 
         // Query instructions
         $query = CourseInstruction::where('instructor_id', $user->id)
             ->withCount('submissions')
             ->orderBy('created_at', 'desc');
 
-        if ($selectedBatchId) {
-            $query->where('training_batch_id', $selectedBatchId);
+        if ($selectedYearId) {
+            $query->where('training_year_id', $selectedYearId);
         }
 
         if ($selectedClassType && $selectedClassType !== 'all') {
@@ -63,9 +55,6 @@ class InstructionController extends Controller
             'trainingYears',
             'selectedYear',
             'selectedYearId',
-            'batches',
-            'selectedBatch',
-            'selectedBatchId',
             'selectedClassType',
             'instructions',
             'teacher',
@@ -82,12 +71,11 @@ class InstructionController extends Controller
         $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->first();
 
-        // Get training years and batches
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
+        // Get training years
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
 
         // Pre-select from query params if available
         $selectedYearId = $request->get('year');
-        $selectedBatchId = $request->get('batch');
 
         // Check which class types this instructor can access
         $canTeachReguler = $teacher ? $teacher->is_reguler : false;
@@ -96,7 +84,6 @@ class InstructionController extends Controller
         return view('instructor.instructions.create', compact(
             'trainingYears',
             'selectedYearId',
-            'selectedBatchId',
             'teacher',
             'canTeachReguler',
             'canTeachKaryawan'
@@ -112,14 +99,14 @@ class InstructionController extends Controller
         $teacher = Teacher::where('user_id', $user->id)->first();
 
         $validated = $request->validate([
-            'training_batch_id' => 'required|exists:training_batches,id',
+            'training_year_id' => 'required|exists:training_years,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:51200',
             'is_task' => 'nullable|boolean',
-            'deadline' => 'nullable|date|after:now',
+            'deadline' => 'nullable|string',
             'allowed_response_type' => 'nullable|in:file,text,both',
-            'class_type' => 'required|in:reguler,karyawan,both',
+            'class_type' => 'required|in:reguler,karyawan,all',
         ]);
 
         // Access control: check if instructor can create for this class type
@@ -129,30 +116,35 @@ class InstructionController extends Controller
         if ($validated['class_type'] === 'karyawan' && !$teacher?->is_karyawan) {
             return back()->with('error', 'Anda tidak memiliki akses ke kelas karyawan.');
         }
-        if ($validated['class_type'] === 'both' && (!$teacher?->is_reguler || !$teacher?->is_karyawan)) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kedua tipe kelas.');
+        if ($validated['class_type'] === 'all' && (!$teacher?->is_reguler || !$teacher?->is_karyawan)) {
+            return back()->with('error', 'Anda tidak memiliki akses ke semua tipe kelas.');
         }
 
         $filePath = null;
         if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('instructions/' . $validated['training_batch_id'], 'public');
+            $filePath = $request->file('file')->store('instructions/' . $validated['training_year_id'], 'public');
+        }
+
+        // Parse deadline from dd/mm/yyyy H:i format
+        $deadline = null;
+        if ($request->boolean('is_task') && !empty($validated['deadline'])) {
+            $deadline = Carbon::createFromFormat('d/m/Y H:i', $validated['deadline']);
         }
 
         CourseInstruction::create([
-            'training_batch_id' => $validated['training_batch_id'],
+            'training_year_id' => $validated['training_year_id'],
             'instructor_id' => $user->id,
             'title' => $validated['title'],
             'description' => $validated['description'],
             'file_path' => $filePath,
             'is_task' => $request->boolean('is_task'),
-            'deadline' => $request->boolean('is_task') ? $validated['deadline'] : null,
+            'deadline' => $deadline,
             'allowed_response_type' => $request->boolean('is_task') ? $validated['allowed_response_type'] : null,
             'class_type' => $validated['class_type'],
         ]);
 
         return redirect()->route('instructor.instructions.index', [
-            'year' => TrainingBatch::find($validated['training_batch_id'])?->training_year_id,
-            'batch' => $validated['training_batch_id'],
+            'year' => $validated['training_year_id'],
         ])->with('success', 'Instruksi berhasil dibuat!');
     }
 
@@ -166,7 +158,7 @@ class InstructionController extends Controller
             abort(403);
         }
 
-        $instruction->load(['submissions.student.user', 'trainingBatch.trainingYear']);
+        $instruction->load(['submissions.student.user', 'trainingYear']);
 
         return view('instructor.instructions.show', compact('instruction'));
     }
@@ -183,7 +175,7 @@ class InstructionController extends Controller
         $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->first();
 
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
 
         $canTeachReguler = $teacher ? $teacher->is_reguler : false;
         $canTeachKaryawan = $teacher ? $teacher->is_karyawan : false;
@@ -210,14 +202,14 @@ class InstructionController extends Controller
         $teacher = Teacher::where('user_id', $user->id)->first();
 
         $validated = $request->validate([
-            'training_batch_id' => 'required|exists:training_batches,id',
+            'training_year_id' => 'required|exists:training_years,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:51200',
             'is_task' => 'nullable|boolean',
-            'deadline' => 'nullable|date',
+            'deadline' => 'nullable|string',
             'allowed_response_type' => 'nullable|in:file,text,both',
-            'class_type' => 'required|in:reguler,karyawan,both',
+            'class_type' => 'required|in:reguler,karyawan,all',
         ]);
 
         // Access control
@@ -233,16 +225,22 @@ class InstructionController extends Controller
             if ($filePath) {
                 Storage::disk('public')->delete($filePath);
             }
-            $filePath = $request->file('file')->store('instructions/' . $validated['training_batch_id'], 'public');
+            $filePath = $request->file('file')->store('instructions/' . $validated['training_year_id'], 'public');
+        }
+
+        // Parse deadline from dd/mm/yyyy H:i format
+        $deadline = null;
+        if ($request->boolean('is_task') && !empty($validated['deadline'])) {
+            $deadline = Carbon::createFromFormat('d/m/Y H:i', $validated['deadline']);
         }
 
         $instruction->update([
-            'training_batch_id' => $validated['training_batch_id'],
+            'training_year_id' => $validated['training_year_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
             'file_path' => $filePath,
             'is_task' => $request->boolean('is_task'),
-            'deadline' => $request->boolean('is_task') ? $validated['deadline'] : null,
+            'deadline' => $deadline,
             'allowed_response_type' => $request->boolean('is_task') ? $validated['allowed_response_type'] : null,
             'class_type' => $validated['class_type'],
         ]);
@@ -260,8 +258,7 @@ class InstructionController extends Controller
             abort(403);
         }
 
-        $batchId = $instruction->training_batch_id;
-        $yearId = $instruction->trainingBatch?->training_year_id;
+        $yearId = $instruction->training_year_id;
 
         if ($instruction->file_path) {
             Storage::disk('public')->delete($instruction->file_path);
@@ -271,7 +268,6 @@ class InstructionController extends Controller
 
         return redirect()->route('instructor.instructions.index', [
             'year' => $yearId,
-            'batch' => $batchId,
         ])->with('success', 'Instruksi berhasil dihapus!');
     }
 

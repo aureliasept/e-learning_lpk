@@ -53,7 +53,7 @@
                         <tr class="bg-[#0b1221]/80 border-b border-[#1e293b]">
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Nama Instruktur</th>
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Jabatan</th>
-                            <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Gelombang</th>
+                            <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Tahun Pelatihan</th>
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Email</th>
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Aksi</th>
                         </tr>
@@ -74,10 +74,9 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                @if($instructor->teacher && $instructor->teacher->trainingBatch)
-                                    @php $batch = $instructor->teacher->trainingBatch; @endphp
+                                @if($instructor->teacher && $instructor->teacher->trainingYear)
                                     <span class="inline-flex items-center px-3 py-1 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-semibold">
-                                        {{ $batch->trainingYear?->name }} - {{ $batch->name }}
+                                        {{ $instructor->teacher->trainingYear->name }}
                                     </span>
                                 @else
                                     <span class="text-gray-500 text-sm">Belum ditentukan</span>

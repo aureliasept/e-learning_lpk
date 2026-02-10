@@ -284,9 +284,7 @@
     {{-- Hidden Form for Submission --}}
     <form id="examForm" action="{{ route('student.exam.submit', $quiz) }}" method="POST" class="hidden">
         @csrf
-        <template x-for="(value, key) in answers" :key="key">
-            <input type="hidden" :name="'answers[' + key + ']'" :value="value">
-        </template>
+        <div id="answersContainer"></div>
     </form>
 
     <script>
@@ -382,8 +380,14 @@
                 
                 formatTime(seconds) {
                     const m = Math.floor(seconds / 60);
-                    const s = seconds % 60;
-                    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    const s = Math.floor(seconds % 60);
+                    if (m > 0 && s > 0) {
+                        return `${m} menit ${s} detik`;
+                    } else if (m > 0) {
+                        return `${m} menit`;
+                    } else {
+                        return `${s} detik`;
+                    }
                 },
                 
                 goToQuestion(index) {
@@ -487,6 +491,20 @@
                     localStorage.removeItem(storageKey);
                     // Remove the beforeunload listener to prevent popup on submit
                     window.removeEventListener('beforeunload', this.handleBeforeUnload);
+                    
+                    // Manually create hidden inputs for answers
+                    const container = document.getElementById('answersContainer');
+                    container.innerHTML = ''; // Clear any existing
+                    for (const [questionId, optionId] of Object.entries(this.answers)) {
+                        if (optionId) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = `answers[${questionId}]`;
+                            input.value = optionId;
+                            container.appendChild(input);
+                        }
+                    }
+                    
                     document.getElementById('examForm').submit();
                 }
             }

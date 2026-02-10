@@ -1,6 +1,6 @@
 @extends('instructor.layouts.app')
 
-@section('title', 'Gudang Materi')
+@section('title', 'Gudang Modul')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +15,7 @@
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <span class="text-[#d4af37] font-medium">Gudang Materi</span>
+        <span class="text-[#d4af37] font-medium">Gudang Modul</span>
     </nav>
 
     {{-- Header --}}
@@ -27,16 +27,16 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-white tracking-wide">Gudang Materi</h1>
-                <p class="text-sm text-gray-400">Kelola materi pembelajaran untuk siswa</p>
+                <h1 class="text-2xl font-bold text-white tracking-wide">Gudang Modul</h1>
+                <p class="text-sm text-gray-400">Kelola modul pembelajaran untuk siswa</p>
             </div>
         </div>
-        <a href="{{ route('instructor.modules.create', ['year' => $selectedYearId, 'batch' => $selectedBatchId]) }}" 
+        <a href="{{ route('instructor.modules.create', ['year' => $selectedYearId]) }}" 
             class="inline-flex justify-center items-center px-6 py-3 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] hover:border-[#d4af37] transition-all duration-200 text-sm font-bold">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            TAMBAH MATERI
+            TAMBAH MODUL
         </a>
     </div>
 
@@ -70,20 +70,12 @@
 
     {{-- Filters --}}
     <div class="bg-gradient-to-b from-[#0f172a] to-[#0b1221] border border-[#1e293b] rounded-2xl p-6 mb-6">
-        <form method="GET" action="{{ route('instructor.modules.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4" x-data="{ 
-            years: {{ $trainingYears->toJson() }},
-            selectedYear: {{ $selectedYearId ?? 'null' }},
-            batches: {{ $batches->toJson() }}
-        }">
+        <form method="GET" action="{{ route('instructor.modules.index') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             {{-- Year Filter --}}
             <div>
-                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tahun Periode</label>
-                <select name="year" @change="
-                    let yr = years.find(y => y.id == $event.target.value);
-                    batches = yr ? yr.batches : [];
-                    $refs.batchSelect.value = batches.length > 0 ? batches[0].id : '';
-                    $el.form.submit();
-                " class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
+                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tahun Pelatihan</label>
+                <select name="year" onchange="this.form.submit()"
+                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                     @foreach($trainingYears as $year)
                         <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
                             {{ $year->name }}
@@ -92,28 +84,14 @@
                 </select>
             </div>
 
-            {{-- Batch Filter --}}
-            <div>
-                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Gelombang</label>
-                <select name="batch" x-ref="batchSelect" @change="$el.form.submit()"
-                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                    @foreach($batches as $batch)
-                        <option value="{{ $batch->id }}" {{ $selectedBatchId == $batch->id ? 'selected' : '' }}>
-                            {{ $batch->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
             {{-- Class Type Filter --}}
             <div>
                 <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tipe Kelas</label>
-                <select name="class_type" @change="$el.form.submit()"
+                <select name="class_type" onchange="this.form.submit()"
                     class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                     <option value="all" {{ $selectedClassType == 'all' ? 'selected' : '' }}>Semua</option>
                     <option value="reguler" {{ $selectedClassType == 'reguler' ? 'selected' : '' }}>Reguler</option>
                     <option value="karyawan" {{ $selectedClassType == 'karyawan' ? 'selected' : '' }}>Karyawan</option>
-                    <option value="both" {{ $selectedClassType == 'both' ? 'selected' : '' }}>Keduanya</option>
                 </select>
             </div>
 
@@ -121,7 +99,7 @@
             <div class="flex items-end">
                 <div class="w-full bg-[#1e293b]/50 rounded-xl p-4 text-center">
                     <p class="text-2xl font-bold text-[#d4af37]">{{ $modules->total() }}</p>
-                    <p class="text-xs text-gray-400">Total Materi</p>
+                    <p class="text-xs text-gray-400">Total Modul</p>
                 </div>
             </div>
         </form>
@@ -145,7 +123,15 @@
                                 <div class="flex flex-wrap items-center gap-2 mb-1">
                                     <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-[#1e293b] text-gray-400">MATERI</span>
                                     <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ $module->class_type == 'reguler' ? 'bg-blue-500/10 text-blue-400' : ($module->class_type == 'karyawan' ? 'bg-purple-500/10 text-purple-400' : 'bg-green-500/10 text-green-400') }}">
-                                        {{ strtoupper($module->class_type ?? 'BOTH') }}
+                                        @if($module->class_type == 'both')
+                                            SEMUA KELAS
+                                        @elseif($module->class_type == 'reguler')
+                                            REGULER
+                                        @elseif($module->class_type == 'karyawan')
+                                            KARYAWAN
+                                        @else
+                                            SEMUA KELAS
+                                        @endif
                                     </span>
                                     <span class="text-xs text-gray-500">{{ $module->created_at->diffForHumans() }}</span>
                                 </div>
@@ -196,15 +182,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-bold text-white mb-2">Belum Ada Materi</h3>
-                <p class="text-gray-400 mb-6">Buat materi pertama untuk filter ini.</p>
-                <a href="{{ route('instructor.modules.create', ['year' => $selectedYearId, 'batch' => $selectedBatchId]) }}" 
-                class="inline-flex justify-center items-center px-6 py-3 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] hover:border-[#d4af37] transition-all duration-200 text-sm font-bold">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    TAMBAH MATERI
-                </a>
+                <h3 class="text-lg font-bold text-white mb-2">Belum Ada Modul</h3>
+                <p class="text-gray-400">Buat modul pertama untuk filter ini.</p>
             </div>
         @endforelse
     </div>

@@ -62,7 +62,7 @@
                         </div>
                         <h1 class="text-xl font-bold text-white">{{ $instruction->title }}</h1>
                         <p class="text-sm text-gray-400 mt-1">
-                            {{ $instruction->trainingBatch?->trainingYear?->name }} / {{ $instruction->trainingBatch?->name }}
+                            {{ $instruction->trainingYear?->name ?? 'Semua Tahun' }}
                         </p>
                     </div>
                 </div>

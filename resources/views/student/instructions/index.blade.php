@@ -14,7 +14,7 @@
         </div>
         <div>
             <h1 class="text-2xl font-bold text-white tracking-wide">Papan Instruksi</h1>
-            <p class="text-sm text-gray-400">{{ $student->trainingBatch->name ?? 'Belum ada gelombang' }}</p>
+            <p class="text-sm text-gray-400">{{ $student->trainingYear->name ?? 'Belum ada tahun pelatihan' }}</p>
         </div>
     </div>
 

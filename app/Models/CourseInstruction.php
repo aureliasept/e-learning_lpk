@@ -10,7 +10,7 @@ class CourseInstruction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'training_batch_id',
+        'training_year_id',
         'instructor_id',
         'title',
         'description',
@@ -27,11 +27,11 @@ class CourseInstruction extends Model
     ];
 
     /**
-     * Get the training batch this instruction belongs to.
+     * Get the training year this instruction belongs to.
      */
-    public function trainingBatch()
+    public function trainingYear()
     {
-        return $this->belongsTo(TrainingBatch::class);
+        return $this->belongsTo(TrainingYear::class);
     }
 
     /**

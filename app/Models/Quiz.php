@@ -13,7 +13,7 @@ class Quiz extends Model
         'title',
         'description',
         'duration_minutes',
-        'training_batch_id',
+        'training_year_id',
         'instructor_id',
         'passing_score',
         'is_active',
@@ -55,11 +55,11 @@ class Quiz extends Model
     }
 
     /**
-     * Get the training batch this quiz belongs to.
+     * Get the training year this quiz belongs to.
      */
-    public function trainingBatch()
+    public function trainingYear()
     {
-        return $this->belongsTo(TrainingBatch::class);
+        return $this->belongsTo(TrainingYear::class);
     }
 
     /**

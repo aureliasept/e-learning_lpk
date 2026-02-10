@@ -26,11 +26,11 @@ class ExamController extends Controller
             ]);
         }
 
-        // Get quizzes for student's batch or all batches
+        // Get quizzes for student's training year or all training years
         $quizzes = Quiz::where('is_active', true)
             ->where(function ($query) use ($student) {
-                $query->where('training_batch_id', $student->training_batch_id)
-                    ->orWhereNull('training_batch_id');
+                $query->where('training_year_id', $student->training_year_id)
+                    ->orWhereNull('training_year_id');
             })
             ->with(['questions', 'attempts' => function ($q) use ($student) {
                 $q->where('student_id', $student->id);

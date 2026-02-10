@@ -170,7 +170,7 @@
                                     <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Upload File</label>
                                     <input type="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip"
                                         class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#1e293b] file:text-gray-300 hover:file:bg-[#334155]">
-                                    <p class="text-xs text-gray-500 mt-1">Format: PDF, DOC, JPG, PNG, ZIP. Max 10MB.</p>
+                                    <p class="text-xs text-gray-500 mt-1">Format: PDF, DOC, JPG, PNG, ZIP. Max 50MB.</p>
                                 </div>
                             @endif
 

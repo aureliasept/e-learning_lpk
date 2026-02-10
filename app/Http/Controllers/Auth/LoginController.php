@@ -18,6 +18,7 @@ class LoginController extends Controller
 
     /**
      * 2. PROSES LOGIN
+     * Semua user (Admin, Instruktur, Peserta) login via Email dan Password
      */
     public function login(Request $request)
     {
@@ -27,10 +28,13 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        // Coba login
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => $request->input('email'),
+            'password' => $request->input('password'),
+        ];
 
-        if (Auth::attempt($credentials)) {
+        // Coba login
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             // CEK ROLE & ARAHKAN KE DASHBOARD YANG BENAR
@@ -38,7 +42,7 @@ class LoginController extends Controller
 
             if ($role === 'admin') {
                 return redirect()->route('admin.dashboard');
-            } elseif ($role === 'instructor') { // Pastikan di database tulisannya 'instructor' (bukan instruktur)
+            } elseif ($role === 'instructor' || $role === 'instruktur') {
                 return redirect()->route('instructor.dashboard');
             } elseif ($role === 'student') {
                 return redirect()->route('student.dashboard');

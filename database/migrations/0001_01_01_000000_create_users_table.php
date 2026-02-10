@@ -14,15 +14,13 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
+            $table->string('nik', 16)->nullable()->unique(); // NIK untuk login siswa
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
-            // --- PERBAIKAN DI SINI ---
-            // Kita tambahkan kolom ROLE dengan pilihan 'admin', 'instruktur', dan 'student'
-            // Ini akan mengatasi error "Data truncated"
+            // Role: admin, instruktur, student
             $table->enum('role', ['admin', 'instruktur', 'student'])->default('student');
-            // -------------------------
 
             $table->rememberToken();
             $table->timestamps();

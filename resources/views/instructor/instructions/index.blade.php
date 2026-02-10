@@ -31,7 +31,7 @@
                 <p class="text-sm text-gray-400">Kelola materi & tugas untuk siswa</p>
             </div>
         </div>
-        <a href="{{ route('instructor.instructions.create', ['year' => $selectedYearId, 'batch' => $selectedBatchId]) }}" 
+        <a href="{{ route('instructor.instructions.create', ['year' => $selectedYearId]) }}" 
             class="inline-flex justify-center items-center px-6 py-3 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] hover:border-[#d4af37] transition-all duration-200 text-sm font-bold">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -70,20 +70,12 @@
 
     {{-- Filters --}}
     <div class="bg-gradient-to-b from-[#0f172a] to-[#0b1221] border border-[#1e293b] rounded-2xl p-6 mb-6">
-        <form method="GET" action="{{ route('instructor.instructions.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4" x-data="{ 
-            years: {{ $trainingYears->toJson() }},
-            selectedYear: {{ $selectedYearId ?? 'null' }},
-            batches: {{ $batches->toJson() }}
-        }">
+        <form method="GET" action="{{ route('instructor.instructions.index') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             {{-- Year Filter --}}
             <div>
-                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tahun Periode</label>
-                <select name="year" @change="
-                    let yr = years.find(y => y.id == $event.target.value);
-                    batches = yr ? yr.batches : [];
-                    $refs.batchSelect.value = batches.length > 0 ? batches[0].id : '';
-                    $el.form.submit();
-                " class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
+                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tahun Pelatihan</label>
+                <select name="year" onchange="this.form.submit()"
+                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                     @foreach($trainingYears as $year)
                         <option value="{{ $year->id }}" {{ $selectedYearId == $year->id ? 'selected' : '' }}>
                             {{ $year->name }}
@@ -92,28 +84,14 @@
                 </select>
             </div>
 
-            {{-- Batch Filter --}}
-            <div>
-                <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Gelombang</label>
-                <select name="batch" x-ref="batchSelect" @change="$el.form.submit()"
-                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                    @foreach($batches as $batch)
-                        <option value="{{ $batch->id }}" {{ $selectedBatchId == $batch->id ? 'selected' : '' }}>
-                            {{ $batch->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
             {{-- Class Type Filter --}}
             <div>
                 <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2">Tipe Kelas</label>
-                <select name="class_type" @change="$el.form.submit()"
+                <select name="class_type" onchange="this.form.submit()"
                     class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                     <option value="all" {{ $selectedClassType == 'all' ? 'selected' : '' }}>Semua</option>
                     <option value="reguler" {{ $selectedClassType == 'reguler' ? 'selected' : '' }}>Reguler</option>
                     <option value="karyawan" {{ $selectedClassType == 'karyawan' ? 'selected' : '' }}>Karyawan</option>
-                    <option value="both" {{ $selectedClassType == 'both' ? 'selected' : '' }}>Keduanya</option>
                 </select>
             </div>
 
@@ -212,14 +190,7 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-2">Belum Ada Instruksi</h3>
-                <p class="text-gray-400 mb-6">Buat instruksi atau tugas pertama untuk filter ini.</p>
-                <a href="{{ route('instructor.instructions.create', ['year' => $selectedYearId, 'batch' => $selectedBatchId]) }}" 
-                    class="inline-flex items-center px-6 py-3 rounded-xl bg-[#d4af37] text-[#0b1221] hover:bg-[#b8962e] transition-all text-sm font-bold">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    BUAT INSTRUKSI
-                </a>
+                <p class="text-gray-400">Buat instruksi atau tugas pertama untuk filter ini.</p>
             </div>
         @endforelse
     </div>

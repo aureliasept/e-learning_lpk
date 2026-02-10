@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\StudentController; // Untuk CRUD Siswa & List Kelas
 use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\TrainingYearController;
-use App\Http\Controllers\Admin\TrainingBatchController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\CourseController;  // Jika masih pakai course/mapel
@@ -59,7 +58,7 @@ Route::get('/dashboard', function () {
     
     return match (auth()->user()->role) {
         'admin' => redirect()->route('admin.dashboard'),
-        'instructor' => redirect()->route('instructor.dashboard'),
+        'instructor', 'instruktur' => redirect()->route('instructor.dashboard'),
         'student' => redirect()->route('student.dashboard'),
         default => redirect('/login'),
     };
@@ -82,13 +81,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Manajemen Berita (CRUD Lengkap)
     Route::resource('news', NewsController::class);
 
-    // NEW: Periode Pelatihan - Hierarki 3 Level (Year -> Batch -> Students)
+    // Periode Pelatihan - Simplified (Tahun Pelatihan / Angkatan only, no batches)
     Route::resource('training_years', TrainingYearController::class);
-    Route::patch('training_years/{training_year}/set-active', [TrainingYearController::class, 'setActive'])->name('training_years.set_active');
-    
-    // Training Batches (Gelombang)
-    Route::resource('training_batches', TrainingBatchController::class)->except(['index']);
-    Route::get('api/batches-by-year/{year}', [TrainingBatchController::class, 'getByYear'])->name('api.batches_by_year');
 
     // Legacy: Periode Pelatihan / Tahun Ajaran (kept for backward compatibility)
     Route::resource('academic_years', AcademicYearController::class)->except(['show']);
@@ -187,4 +181,9 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::post('/exam/{quiz}/submit', [\App\Http\Controllers\Student\ExamController::class, 'submit'])->name('exam.submit');
     Route::post('/exam/save/{attempt}', [\App\Http\Controllers\Student\ExamController::class, 'saveAnswers'])->name('exam.save');
     Route::get('/exam/result/{attempt}', [\App\Http\Controllers\Student\ExamController::class, 'result'])->name('exam.result');
+
+    // Gudang Materi (Modules)
+    Route::get('/modules', [\App\Http\Controllers\Student\ModuleController::class, 'index'])->name('modules.index');
+    Route::get('/modules/{module}', [\App\Http\Controllers\Student\ModuleController::class, 'show'])->name('modules.show');
+    Route::get('/modules/{module}/download', [\App\Http\Controllers\Student\ModuleController::class, 'download'])->name('modules.download');
 });

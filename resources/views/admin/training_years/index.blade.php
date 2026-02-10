@@ -26,7 +26,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-white tracking-wide">Periode Pelatihan</h1>
-                    <p class="text-sm text-gray-400">Kelola tahun dan gelombang pelatihan</p>
+                    <p class="text-sm text-gray-400">Kelola tahun pelatihan (label angkatan)</p>
                 </div>
             </div>
             <a href="{{ route('admin.training_years.create') }}" 
@@ -58,28 +58,6 @@
                 </div>
             </div>
             <div class="bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 flex items-center gap-3">
-                <div class="h-8 w-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-white leading-none">{{ $stats['tahun_aktif'] }}</p>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Aktif</p>
-                </div>
-            </div>
-            <div class="bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 flex items-center gap-3">
-                <div class="h-8 w-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-lg font-bold text-white leading-none">{{ $stats['total_gelombang'] }}</p>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Gelombang</p>
-                </div>
-            </div>
-            <div class="bg-[#0f172a] border border-[#1e293b] rounded-lg px-4 py-2.5 flex items-center gap-3">
                 <div class="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                     <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -107,8 +85,7 @@
                     <thead>
                         <tr class="bg-[#0b1221]/80 border-b border-[#1e293b]">
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Tahun</th>
-                            <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Total Gelombang</th>
-                            <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Total Siswa</th>
                             <th class="px-6 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -118,47 +95,20 @@
                                 <td class="px-6 py-4 font-medium text-white text-lg">{{ $year->name }}</td>
                                 <td class="px-6 py-4 text-center">
                                     <span class="inline-flex items-center px-3 py-1 rounded-lg bg-[#1e293b] text-[#d4af37] border border-[#d4af37]/30 text-xs font-bold">
-                                        {{ $year->batches_count }} Gelombang
+                                        {{ $year->students_count }} Siswa
                                     </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if($year->is_active)
-                                        <span class="inline-flex items-center px-4 py-1.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/30 text-xs font-semibold">
-                                            AKTIF
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-4 py-1.5 rounded-lg bg-gray-500/10 text-gray-400 border border-gray-500/30 text-xs font-semibold">
-                                            NONAKTIF
-                                        </span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
                                         {{-- View Detail (Eye Icon) --}}
                                         <a href="{{ route('admin.training_years.show', $year->id) }}" 
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#d4af37]/10 text-[#d4af37] hover:bg-[#d4af37]/20 transition-all duration-200" 
-                                            title="Lihat Detail">
+                                            title="Lihat Siswa">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
                                         </a>
-                                        {{-- Activate button (only for non-active) --}}
-                                        <div class="w-8">
-                                            @if(!$year->is_active)
-                                                <form action="{{ route('admin.training_years.set_active', $year->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" 
-                                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#1e293b] text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-200"
-                                                        title="Jadikan Aktif">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
                                         {{-- Edit button --}}
                                         <a href="{{ route('admin.training_years.edit', $year->id) }}" 
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#1e293b] text-gray-400 hover:text-[#d4af37] hover:bg-[#334155] transition-all duration-200" 
@@ -173,7 +123,7 @@
                                             @click="$dispatch('confirm-delete', { 
                                                 url: '{{ route('admin.training_years.destroy', $year->id) }}',
                                                 title: 'Hapus Tahun',
-                                                message: 'Apakah Anda yakin ingin menghapus tahun {{ $year->name }}? Semua gelombang dan data terkait akan ikut terhapus.'
+                                                message: 'Apakah Anda yakin ingin menghapus tahun {{ $year->name }}? Siswa yang terkait akan kehilangan referensi tahun.'
                                             })"
                                             class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#1e293b] text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
                                             title="Hapus">
@@ -186,7 +136,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-16 text-center">
+                                <td colspan="3" class="px-6 py-16 text-center">
                                     <div class="flex flex-col items-center justify-center gap-4">
                                         <div class="h-16 w-16 rounded-full bg-[#1e293b] flex items-center justify-center">
                                             <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

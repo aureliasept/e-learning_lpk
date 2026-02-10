@@ -16,7 +16,7 @@ class Student extends Model
         'classroom',
         'type', // reguler / karyawan
         'academic_year_id',
-        'training_batch_id',
+        'training_year_id',
         'entry_date',
         'gender',
         'address',
@@ -48,18 +48,10 @@ class Student extends Model
     }
 
     /**
-     * New relationship - Training Batch (Gelombang).
-     */
-    public function trainingBatch()
-    {
-        return $this->belongsTo(TrainingBatch::class);
-    }
-
-    /**
-     * Get training year through batch.
+     * Training Year (Tahun Pelatihan/Angkatan).
      */
     public function trainingYear()
     {
-        return $this->trainingBatch?->trainingYear;
+        return $this->belongsTo(TrainingYear::class);
     }
 }

@@ -11,10 +11,10 @@
         <div class="relative">
             <h1 class="text-2xl font-bold text-white mb-2">Selamat datang, {{ $user->name }}! 👋</h1>
             <p class="text-gray-400">
-                @if($student && $student->trainingBatch)
-                    {{ $student->trainingBatch->name }} - {{ $student->classroom ?? '' }}
+                @if($student && $student->trainingYear)
+                    {{ $student->trainingYear->name }} - {{ $student->classroom ?? '' }}
                 @else
-                    Belum terdaftar di gelombang
+                    Belum terdaftar di tahun pelatihan
                 @endif
             </p>
         </div>
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        {{-- Batch Info --}}
+        {{-- Year Info --}}
         <div class="bg-gradient-to-b from-[#0f172a] to-[#0b1221] border border-[#1e293b] rounded-2xl p-6">
             <div class="flex items-center gap-4">
                 <div class="h-12 w-12 rounded-xl bg-[#d4af37]/10 flex items-center justify-center">
@@ -61,8 +61,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-lg font-bold text-white">{{ $student?->trainingBatch?->name ?? '-' }}</p>
-                    <p class="text-sm text-gray-400">Gelombang Anda</p>
+                    <p class="text-lg font-bold text-white">{{ $student?->trainingYear?->name ?? '-' }}</p>
+                    <p class="text-sm text-gray-400">Tahun Pelatihan</p>
                 </div>
             </div>
         </div>

@@ -3,15 +3,7 @@
 @section('title', 'Buat Instruksi')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ 
-    isTask: false,
-    years: {{ $trainingYears->toJson() }},
-    selectedYear: {{ $selectedYearId ?? $trainingYears->first()?->id ?? 'null' }},
-    get batches() {
-        let yr = this.years.find(y => y.id == this.selectedYear);
-        return yr ? yr.batches : [];
-    }
-}">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ isTask: false }">
 
     {{-- Breadcrumb --}}
     <nav class="flex items-center space-x-2 text-sm mb-6">
@@ -68,30 +60,19 @@
             <div class="p-6 border-b border-[#1e293b]">
                 <h2 class="text-lg font-bold text-white">Target Instruksi</h2>
             </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- Year --}}
                 <div>
                     <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                         Tahun Periode <span class="text-red-400">*</span>
                     </label>
-                    <select x-model="selectedYear" 
+                    <select name="training_year_id" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @foreach($trainingYears as $year)
-                            <option value="{{ $year->id }}">{{ $year->name }}</option>
+                            <option value="{{ $year->id }}" {{ old('training_year_id', $selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
+                                {{ $year->name }}
+                            </option>
                         @endforeach
-                    </select>
-                </div>
-
-                {{-- Batch --}}
-                <div>
-                    <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                        Gelombang <span class="text-red-400">*</span>
-                    </label>
-                    <select name="training_batch_id" required
-                        class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                        <template x-for="batch in batches" :key="batch.id">
-                            <option :value="batch.id" x-text="batch.name" :selected="batch.id == {{ $selectedBatchId ?? 'null' }}"></option>
-                        </template>
                     </select>
                 </div>
 
@@ -103,7 +84,7 @@
                     <select name="class_type" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @if($canTeachReguler && $canTeachKaryawan)
-                            <option value="both">Keduanya (Reguler & Karyawan)</option>
+                            <option value="all">Semua (Reguler & Karyawan)</option>
                             <option value="reguler">Reguler</option>
                             <option value="karyawan">Karyawan</option>
                         @elseif($canTeachReguler)
@@ -151,7 +132,7 @@
                     </label>
                     <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.jpg,.jpeg,.png"
                         class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#1e293b] file:text-gray-300 hover:file:bg-[#334155]">
-                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 10MB.</p>
+                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 50MB.</p>
                 </div>
             </div>
         </div>
@@ -184,8 +165,35 @@
                             <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                                 Deadline <span class="text-red-400">*</span>
                             </label>
-                            <input type="datetime-local" name="deadline" value="{{ old('deadline') }}"
-                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                            
+                            {{-- Input Group with Icon --}}
+                            <div class="flex">
+                                <span class="inline-flex items-center px-4 bg-[#1e293b] border border-r-0 border-[#1e293b] rounded-l-xl">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </span>
+                                <input type="datetime-local" name="deadline" id="deadline-picker" 
+                                    value="{{ old('deadline') }}"
+                                    class="flex-1 bg-[#0b1221] border border-[#1e293b] text-white rounded-r-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                            </div>
+                            
+                            {{-- Quick Buttons --}}
+                            <div class="flex items-center gap-2 mt-3">
+                                <span class="text-xs text-gray-500">Opsi cepat:</span>
+                                <button type="button" onclick="setDeadline(1)" 
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-[#1e293b] text-gray-300 border border-[#334155] hover:bg-[#334155] hover:text-white transition-all">
+                                    Besok
+                                </button>
+                                <button type="button" onclick="setDeadline(3)" 
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-[#1e293b] text-gray-300 border border-[#334155] hover:bg-[#334155] hover:text-white transition-all">
+                                    3 Hari
+                                </button>
+                                <button type="button" onclick="setDeadline(7)" 
+                                    class="px-3 py-1.5 text-xs font-medium rounded-lg bg-[#1e293b] text-gray-300 border border-[#334155] hover:bg-[#334155] hover:text-white transition-all">
+                                    1 Minggu
+                                </button>
+                            </div>
                         </div>
 
                         {{-- Response Type --}}
@@ -222,3 +230,23 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#deadline-picker", {
+            enableTime: true,
+            dateFormat: "d/m/Y H:i",
+            time_24hr: true,
+            allowInput: true,
+            theme: "dark",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
+    });
+</script>
+@endpush

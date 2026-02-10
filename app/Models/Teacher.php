@@ -18,7 +18,7 @@ class Teacher extends Model
         'birth_date',
         'is_reguler',
         'is_karyawan',
-        'training_batch_id', // NEW: Link to training batch
+        'training_year_id',
     ];
 
     protected $casts = [
@@ -33,18 +33,18 @@ class Teacher extends Model
     }
 
     /**
-     * Get the training batch this instructor is assigned to.
-     */
-    public function trainingBatch()
-    {
-        return $this->belongsTo(TrainingBatch::class);
-    }
-
-    /**
-     * Get the training year through the batch.
+     * Get the training year this instructor is assigned to.
      */
     public function trainingYear()
     {
-        return $this->trainingBatch?->trainingYear;
+        return $this->belongsTo(TrainingYear::class);
+    }
+
+    /**
+     * Get the courses this teacher is assigned to.
+     */
+    public function courses()
+    {
+        return $this->hasMany(Course::class, 'teacher_id');
     }
 }

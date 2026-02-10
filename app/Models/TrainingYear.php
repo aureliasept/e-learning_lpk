@@ -11,47 +11,26 @@ class TrainingYear extends Model
 
     protected $fillable = [
         'name',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
     ];
 
     /**
-     * Get all batches for this training year.
-     */
-    public function batches()
-    {
-        return $this->hasMany(TrainingBatch::class);
-    }
-
-    /**
-     * Get all students through batches.
+     * Get all students for this training year.
      */
     public function students()
     {
-        return $this->hasManyThrough(Student::class, TrainingBatch::class);
+        return $this->hasMany(Student::class);
     }
 
     /**
-     * Scope to get only active training year.
+     * Get all teachers for this training year.
      */
-    public function scopeActive($query)
+    public function teachers()
     {
-        return $query->where('is_active', true);
+        return $this->hasMany(Teacher::class);
     }
 
     /**
-     * Get count of batches.
-     */
-    public function getBatchCountAttribute(): int
-    {
-        return $this->batches()->count();
-    }
-
-    /**
-     * Get count of students across all batches.
+     * Get count of students.
      */
     public function getStudentCountAttribute(): int
     {

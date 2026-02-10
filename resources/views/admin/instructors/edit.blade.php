@@ -108,39 +108,22 @@
             {{-- Divider --}}
             <div class="border-t border-[#1e293b] my-8"></div>
 
-            {{-- Chained Dropdown: Tahun → Gelombang (Periode Mengajar) --}}
-            <div class="mb-6" x-data="batchDropdown()">
+            {{-- Tahun Pelatihan (Simplified - no batch) --}}
+            <div class="mb-6">
                 <label class="block text-[#d4af37] text-xs font-bold uppercase mb-3 tracking-wider">
-                    Periode Mengajar (Opsional)
+                    Tahun Pelatihan (Opsional)
                 </label>
-                <p class="text-xs text-gray-500 mb-4">Pilih tahun dan gelombang di mana instruktur ini akan mengajar</p>
+                <p class="text-xs text-gray-500 mb-4">Pilih tahun di mana instruktur ini akan mengajar</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-400 text-xs mb-2">Tahun Pelatihan</label>
-                        <select x-model="selectedYear" @change="fetchBatches()" 
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none">
-                            <option value="">-- Tidak Ditentukan --</option>
-                            @foreach($trainingYears ?? [] as $year)
-                                <option value="{{ $year->id }}" {{ $selectedTrainingYearId == $year->id ? 'selected' : '' }}>
-                                    {{ $year->name }}{{ $year->is_active ? ' (Aktif)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-400 text-xs mb-2">Gelombang</label>
-                        <select name="training_batch_id" x-model="selectedBatch" :disabled="!selectedYear || loading"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none disabled:opacity-50">
-                            <option value="">-- Pilih Gelombang --</option>
-                            <template x-for="batch in batches" :key="batch.id">
-                                <option :value="batch.id" x-text="batch.name" :selected="batch.id == initialBatchId"></option>
-                            </template>
-                        </select>
-                        <p x-show="loading" class="text-xs text-gray-500 mt-2">Memuat gelombang...</p>
-                    </div>
-                </div>
+                <select name="training_year_id"
+                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none">
+                    <option value="">-- Tidak Ditentukan --</option>
+                    @foreach($trainingYears ?? [] as $year)
+                        <option value="{{ $year->id }}" {{ old('training_year_id', $selectedTrainingYearId) == $year->id ? 'selected' : '' }}>
+                            {{ $year->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             {{-- Divider --}}
@@ -264,38 +247,6 @@ function instructorForm() {
                 return false;
             }
             return true;
-        }
-    }
-}
-
-function batchDropdown() {
-    return {
-        selectedYear: '{{ $selectedTrainingYearId ?? "" }}',
-        selectedBatch: '{{ $selectedBatchId ?? "" }}',
-        initialBatchId: '{{ $selectedBatchId ?? "" }}',
-        batches: @json($trainingBatches ?? []),
-        loading: false,
-
-        fetchBatches() {
-            if (!this.selectedYear) {
-                this.batches = [];
-                this.selectedBatch = '';
-                return;
-            }
-
-            this.loading = true;
-            this.selectedBatch = '';
-
-            fetch(`/admin/api/batches-by-year/${this.selectedYear}`)
-                .then(response => response.json())
-                .then(data => {
-                    this.batches = data;
-                    this.loading = false;
-                })
-                .catch(error => {
-                    console.error('Error fetching batches:', error);
-                    this.loading = false;
-                });
         }
     }
 }

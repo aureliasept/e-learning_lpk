@@ -31,13 +31,11 @@ class InstructorController extends Controller
 
     public function create()
     {
-        // Training years for chained dropdown
+        // Training years for assignment (simplified - no batches)
         $trainingYears = \App\Models\TrainingYear::orderByDesc('name')->get();
-        $activeYear = \App\Models\TrainingYear::where('is_active', true)->first();
         
         return view('admin.instructors.create', [
             'trainingYears' => $trainingYears,
-            'activeYearId' => $activeYear?->id,
         ]);
     }
 
@@ -52,7 +50,7 @@ class InstructorController extends Controller
             'position' => 'nullable|string',
             'birth_place' => 'nullable|string',
             'birth_date' => 'nullable|date',
-            'training_batch_id' => 'nullable|exists:training_batches,id',
+            'training_year_id' => 'nullable|exists:training_years,id',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -88,9 +86,9 @@ class InstructorController extends Controller
             if (Schema::hasColumn('teachers', 'is_karyawan')) {
                 $teacherData['is_karyawan'] = $request->boolean('is_karyawan');
             }
-            // NEW: training_batch_id for batch assignment
-            if (Schema::hasColumn('teachers', 'training_batch_id')) {
-                $teacherData['training_batch_id'] = $request->training_batch_id;
+            // Training year assignment (simplified from batch)
+            if (Schema::hasColumn('teachers', 'training_year_id')) {
+                $teacherData['training_year_id'] = $request->training_year_id;
             }
 
             Teacher::create($teacherData);
@@ -103,25 +101,16 @@ class InstructorController extends Controller
     {
         $instructor = User::where('role', 'instructor')->with('teacher')->findOrFail($id);
         
-        // Training years for chained dropdown
+        // Training years for assignment (simplified)
         $trainingYears = \App\Models\TrainingYear::orderByDesc('name')->get();
         
-        // Get current batch info
-        $selectedBatchId = $instructor->teacher?->training_batch_id;
-        $selectedBatch = $selectedBatchId ? \App\Models\TrainingBatch::find($selectedBatchId) : null;
-        $selectedTrainingYearId = $selectedBatch?->training_year_id;
-        
-        // Get batches for selected year
-        $trainingBatches = $selectedTrainingYearId 
-            ? \App\Models\TrainingBatch::where('training_year_id', $selectedTrainingYearId)->orderBy('start_date')->get()
-            : collect();
+        // Get current year assignment
+        $selectedTrainingYearId = $instructor->teacher?->training_year_id;
         
         return view('admin.instructors.edit', [
             'instructor' => $instructor,
             'trainingYears' => $trainingYears,
-            'trainingBatches' => $trainingBatches,
             'selectedTrainingYearId' => $selectedTrainingYearId,
-            'selectedBatchId' => $selectedBatchId,
         ]);
     }
 
@@ -138,7 +127,7 @@ class InstructorController extends Controller
             'position' => 'nullable|string',
             'birth_place' => 'nullable|string',
             'birth_date' => 'nullable|date',
-            'training_batch_id' => 'nullable|exists:training_batches,id',
+            'training_year_id' => 'nullable|exists:training_years,id',
         ]);
 
         DB::transaction(function () use ($request, $user) {
@@ -176,9 +165,9 @@ class InstructorController extends Controller
             if (Schema::hasColumn('teachers', 'is_karyawan')) {
                 $teacherData['is_karyawan'] = $request->boolean('is_karyawan');
             }
-            // NEW: training_batch_id for batch assignment
-            if (Schema::hasColumn('teachers', 'training_batch_id')) {
-                $teacherData['training_batch_id'] = $request->training_batch_id;
+            // Training year assignment (simplified from batch)
+            if (Schema::hasColumn('teachers', 'training_year_id')) {
+                $teacherData['training_year_id'] = $request->training_year_id;
             }
 
             $user->teacher()->updateOrCreate(

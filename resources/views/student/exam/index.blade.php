@@ -57,8 +57,8 @@
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-white mb-1">{{ $quiz->title }}</h3>
-                                @if($quiz->trainingBatch)
-                                    <p class="text-xs text-gray-500">{{ $quiz->trainingBatch->name }}</p>
+                                @if($quiz->trainingYear)
+                                    <p class="text-xs text-gray-500">{{ $quiz->trainingYear->name }}</p>
                                 @endif
                             </div>
                             @if($isCompleted)
@@ -126,7 +126,7 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-2">Belum ada Quiz Tersedia</h3>
-                <p class="text-gray-400 text-sm">Quiz akan muncul ketika instruktur mempublikasikan ujian untuk gelombang Anda.</p>
+                <p class="text-gray-400 text-sm">Quiz akan muncul ketika instruktur mempublikasikan ujian untuk tahun pelatihan Anda.</p>
             </div>
         </div>
     @endif

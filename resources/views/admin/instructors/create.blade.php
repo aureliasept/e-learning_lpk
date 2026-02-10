@@ -70,8 +70,15 @@
                 </div>
                 <div>
                     <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">Tanggal Lahir</label>
-                        <input type="date" name="birth_date" value="{{ old('birth_date') }}"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all duration-200">
+                    <div class="relative">
+                        <input type="text" id="birth_date_picker" name="birth_date" value="{{ old('birth_date') }}" placeholder="dd/mm/yyyy" readonly
+                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3.5 pr-12 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all duration-200 cursor-pointer">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                            <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -101,39 +108,22 @@
             {{-- Divider --}}
             <div class="border-t border-[#1e293b] my-8"></div>
 
-            {{-- Chained Dropdown: Tahun → Gelombang (Periode Mengajar) --}}
-            <div class="mb-6" x-data="batchDropdown()">
+            {{-- Tahun Pelatihan (Simplified - no batch) --}}
+            <div class="mb-6">
                 <label class="block text-[#d4af37] text-xs font-bold uppercase mb-3 tracking-wider">
-                    Periode Mengajar (Opsional)
+                    Tahun Pelatihan (Opsional)
                 </label>
-                <p class="text-xs text-gray-500 mb-4">Pilih tahun dan gelombang di mana instruktur ini akan mengajar</p>
+                <p class="text-xs text-gray-500 mb-4">Pilih tahun di mana instruktur ini akan mengajar</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-400 text-xs mb-2">Tahun Pelatihan</label>
-                        <select x-model="selectedYear" @change="fetchBatches()" 
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none">
-                            <option value="">-- Tidak Ditentukan --</option>
-                            @foreach($trainingYears ?? [] as $year)
-                                <option value="{{ $year->id }}">
-                                    {{ $year->name }}{{ $year->is_active ? ' (Aktif)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-400 text-xs mb-2">Gelombang</label>
-                        <select name="training_batch_id" x-model="selectedBatch" :disabled="!selectedYear || loading"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none disabled:opacity-50">
-                            <option value="">-- Pilih Gelombang --</option>
-                            <template x-for="batch in batches" :key="batch.id">
-                                <option :value="batch.id" x-text="batch.name"></option>
-                            </template>
-                        </select>
-                        <p x-show="loading" class="text-xs text-gray-500 mt-2">Memuat gelombang...</p>
-                    </div>
-                </div>
+                <select name="training_year_id"
+                    class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none">
+                    <option value="">-- Tidak Ditentukan --</option>
+                    @foreach($trainingYears ?? [] as $year)
+                        <option value="{{ $year->id }}" {{ old('training_year_id') == $year->id ? 'selected' : '' }}>
+                            {{ $year->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             {{-- Divider --}}
@@ -234,6 +224,28 @@
 
 @push('scripts')
 <script>
+// Initialize Flatpickr date picker
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#birth_date_picker", {
+        dateFormat: "d/m/Y",
+        altInput: false,
+        allowInput: false,
+        locale: {
+            firstDayOfWeek: 1,
+            weekdays: {
+                shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+            },
+            months: {
+                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+            }
+        },
+        theme: "dark",
+        disableMobile: true
+    });
+});
+
 function instructorForm() {
     return {
         password: '',
@@ -255,37 +267,6 @@ function instructorForm() {
                 return false;
             }
             return true;
-        }
-    }
-}
-
-function batchDropdown() {
-    return {
-        selectedYear: '',
-        selectedBatch: '',
-        batches: [],
-        loading: false,
-
-        fetchBatches() {
-            if (!this.selectedYear) {
-                this.batches = [];
-                this.selectedBatch = '';
-                return;
-            }
-
-            this.loading = true;
-            this.selectedBatch = '';
-
-            fetch(`/admin/api/batches-by-year/${this.selectedYear}`)
-                .then(response => response.json())
-                .then(data => {
-                    this.batches = data;
-                    this.loading = false;
-                })
-                .catch(error => {
-                    console.error('Error fetching batches:', error);
-                    this.loading = false;
-                });
         }
     }
 }

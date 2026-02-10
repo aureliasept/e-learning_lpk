@@ -4,47 +4,50 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TrainingYear;
-use App\Models\TrainingBatch;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 
 class TrainingYearController extends Controller
 {
     /**
-     * Level 1: Display table of training years.
+     * Display table of training years.
      */
     public function index()
     {
-        $years = TrainingYear::withCount('batches')
+        $years = TrainingYear::withCount('students')
             ->orderByDesc('name')
             ->orderByDesc('id')
             ->get();
 
-        // Calculate stats
+        // Calculate stats (simplified - no more batches)
         $stats = [
             'total_tahun' => $years->count(),
-            'tahun_aktif' => $years->where('is_active', true)->count(),
-            'total_gelombang' => TrainingBatch::count(),
-            'total_siswa' => \App\Models\Student::whereNotNull('training_batch_id')->count(),
+            'total_siswa' => Student::whereNotNull('training_year_id')->count(),
         ];
 
         return view('admin.training_years.index', compact('years', 'stats'));
     }
 
     /**
-     * Level 2: Show batches for a specific year (Card grid).
+     * Show students for a specific year - grouped by class type.
      */
     public function show(TrainingYear $training_year)
     {
-        $batches = $training_year->batches()
-            ->withCount('students')
-            ->orderBy('start_date')
+        $students = $training_year->students()
+            ->with('user')
+            ->orderBy('classroom')
+            ->orderBy('type')
             ->get();
+
+        $regulerCount = $students->where('type', 'reguler')->count();
+        $karyawanCount = $students->where('type', 'karyawan')->count();
 
         return view('admin.training_years.show', [
             'year' => $training_year,
-            'batches' => $batches,
+            'students' => $students,
+            'regulerCount' => $regulerCount,
+            'karyawanCount' => $karyawanCount,
         ]);
     }
 
@@ -63,21 +66,11 @@ class TrainingYearController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
-            $isActive = $request->boolean('is_active');
-
-            if ($isActive) {
-                TrainingYear::where('is_active', true)->update(['is_active' => false]);
-            }
-
-            TrainingYear::create([
-                'name' => $validated['name'],
-                'is_active' => $isActive,
-            ]);
-        });
+        TrainingYear::create([
+            'name' => $validated['name'],
+        ]);
 
         return redirect()->route('admin.training_years.index')
             ->with('success', 'Tahun pelatihan berhasil ditambahkan.');
@@ -98,23 +91,11 @@ class TrainingYearController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($validated, $request, $training_year) {
-            $isActive = $request->boolean('is_active');
-
-            if ($isActive) {
-                TrainingYear::where('is_active', true)
-                    ->where('id', '!=', $training_year->id)
-                    ->update(['is_active' => false]);
-            }
-
-            $training_year->update([
-                'name' => $validated['name'],
-                'is_active' => $isActive,
-            ]);
-        });
+        $training_year->update([
+            'name' => $validated['name'],
+        ]);
 
         return redirect()->route('admin.training_years.index')
             ->with('success', 'Tahun pelatihan berhasil diperbarui.');
@@ -129,19 +110,5 @@ class TrainingYearController extends Controller
 
         return redirect()->route('admin.training_years.index')
             ->with('success', 'Tahun pelatihan berhasil dihapus.');
-    }
-
-    /**
-     * Set a training year as active.
-     */
-    public function setActive(TrainingYear $training_year): RedirectResponse
-    {
-        DB::transaction(function () use ($training_year) {
-            TrainingYear::where('is_active', true)->update(['is_active' => false]);
-            $training_year->update(['is_active' => true]);
-        });
-
-        return redirect()->route('admin.training_years.index')
-            ->with('success', 'Tahun aktif berhasil diubah.');
     }
 }

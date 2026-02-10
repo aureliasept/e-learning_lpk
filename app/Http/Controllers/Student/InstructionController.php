@@ -12,23 +12,23 @@ use Illuminate\Support\Facades\Auth;
 class InstructionController extends Controller
 {
     /**
-     * Display timeline of instructions for student's batch.
+     * Display timeline of instructions for student's training year.
      */
     public function index()
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = Student::where('user_id', $user->id)->with('trainingYear')->first();
 
-        if (!$student || !$student->training_batch_id) {
+        if (!$student || !$student->training_year_id) {
             return view('student.instructions.index', [
                 'instructions' => collect(),
                 'student' => $student,
             ]);
         }
 
-        // Filter by student's batch AND class type
-        $instructions = CourseInstruction::where('training_batch_id', $student->training_batch_id)
-            ->whereIn('class_type', [$student->type, 'both'])
+        // Filter by student's training year AND class type
+        $instructions = CourseInstruction::where('training_year_id', $student->training_year_id)
+            ->whereIn('class_type', [$student->type, 'all'])
             ->with(['instructor', 'submissions' => function ($q) use ($student) {
                 $q->where('student_id', $student->id);
             }])
@@ -46,13 +46,13 @@ class InstructionController extends Controller
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
 
-        // Ensure student can only access instructions for their batch AND class type
-        if (!$student || $instruction->training_batch_id !== $student->training_batch_id) {
+        // Ensure student can only access instructions for their training year AND class type
+        if (!$student || $instruction->training_year_id !== $student->training_year_id) {
             abort(403);
         }
 
         // Check class type access
-        if (!in_array($instruction->class_type, [$student->type, 'both'])) {
+        if (!in_array($instruction->class_type, [$student->type, 'all'])) {
             abort(403);
         }
 
@@ -69,13 +69,13 @@ class InstructionController extends Controller
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->firstOrFail();
 
-        // Ensure student can only submit to instructions for their batch AND class type
-        if ($instruction->training_batch_id !== $student->training_batch_id) {
+        // Ensure student can only submit to instructions for their training year AND class type
+        if ($instruction->training_year_id !== $student->training_year_id) {
             abort(403);
         }
 
         // Check class type access
-        if (!in_array($instruction->class_type, [$student->type, 'both'])) {
+        if (!in_array($instruction->class_type, [$student->type, 'all'])) {
             abort(403);
         }
 
@@ -101,7 +101,7 @@ class InstructionController extends Controller
         // Validate based on allowed response type
         $rules = [];
         if (in_array($instruction->allowed_response_type, ['file', 'both'])) {
-            $rules['file'] = 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,zip|max:10240';
+            $rules['file'] = 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,zip|max:51200';
         }
         if (in_array($instruction->allowed_response_type, ['text', 'both'])) {
             $rules['text_response'] = 'nullable|string|max:5000';

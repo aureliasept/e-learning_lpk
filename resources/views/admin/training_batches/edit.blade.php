@@ -89,16 +89,30 @@
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                             Tanggal Mulai <span class="text-red-400">*</span>
                         </label>
-                        <input type="date" name="start_date" value="{{ old('start_date', $batch->start_date->format('Y-m-d')) }}" required
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                        <div class="relative">
+                            <input type="text" id="start_date_picker" name="start_date" value="{{ old('start_date', $batch->start_date->format('d/m/Y')) }}" required placeholder="dd/mm/yyyy"
+                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                             Tanggal Selesai <span class="text-red-400">*</span>
                         </label>
-                        <input type="date" name="end_date" value="{{ old('end_date', $batch->end_date->format('Y-m-d')) }}" required
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                        <div class="relative">
+                            <input type="text" id="end_date_picker" name="end_date" value="{{ old('end_date', $batch->end_date->format('d/m/Y')) }}" required placeholder="dd/mm/yyyy"
+                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -118,3 +132,30 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const flatpickrConfig = {
+        dateFormat: "d/m/Y",
+        allowInput: true,
+        locale: {
+            firstDayOfWeek: 1,
+            weekdays: {
+                shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+            },
+            months: {
+                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+            }
+        },
+        theme: "dark",
+        disableMobile: true
+    };
+    
+    flatpickr("#start_date_picker", flatpickrConfig);
+    flatpickr("#end_date_picker", flatpickrConfig);
+});
+</script>
+@endpush

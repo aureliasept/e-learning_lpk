@@ -14,16 +14,19 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->with('trainingBatch')->first();
+        $student = Student::where('user_id', $user->id)->with('trainingYear')->first();
         
-        $batchId = $student?->training_batch_id;
+        $yearId = $student?->training_year_id;
 
-        // Get pending tasks (tasks not yet submitted) - filtered by batch
+        // Get pending tasks (tasks not yet submitted) - filtered by training year
         $pendingTasks = 0;
         $recentInstructions = collect();
-        if ($batchId) {
+        if ($yearId) {
             $studentId = $student->id;
-            $recentInstructions = CourseInstruction::where('training_batch_id', $batchId)
+            $studentType = $student->type;
+            
+            $recentInstructions = CourseInstruction::where('training_year_id', $yearId)
+                ->whereIn('class_type', [$studentType, 'all'])
                 ->with(['instructor', 'submissions' => function ($q) use ($studentId) {
                     $q->where('student_id', $studentId);
                 }])
@@ -31,7 +34,8 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
-            $pendingTasks = CourseInstruction::where('training_batch_id', $batchId)
+            $pendingTasks = CourseInstruction::where('training_year_id', $yearId)
+                ->whereIn('class_type', [$studentType, 'all'])
                 ->where('is_task', true)
                 ->where('deadline', '>', now())
                 ->whereDoesntHave('submissions', function ($q) use ($studentId) {
@@ -40,11 +44,11 @@ class DashboardController extends Controller
                 ->count();
         }
 
-        // Get available quizzes - filtered by batch
+        // Get available quizzes - filtered by training year
         $availableQuizzes = Quiz::where('is_active', true)
-            ->where(function ($query) use ($batchId) {
-                $query->where('training_batch_id', $batchId)
-                    ->orWhereNull('training_batch_id');
+            ->where(function ($query) use ($yearId) {
+                $query->where('training_year_id', $yearId)
+                    ->orWhereNull('training_year_id');
             })
             ->whereDoesntHave('attempts', function ($q) use ($student) {
                 if ($student) {

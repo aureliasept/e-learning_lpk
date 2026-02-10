@@ -23,3 +23,19 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ----------------------------------------------------------------------
+# CUSTOM PHP SETTINGS (LIMIT UPLOAD 100MB)
+# ----------------------------------------------------------------------
+# Pengaturan ini akan menimpa php.ini khusus untuk folder ini
+<IfModule mod_php.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 110M
+    php_value memory_limit 256M
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 110M
+    php_value memory_limit 256M
+</IfModule>

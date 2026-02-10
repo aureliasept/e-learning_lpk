@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AcademicYear;
 use App\Models\Student;
-use App\Models\TrainingBatch;
+use App\Models\TrainingYear;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -22,46 +21,24 @@ class ClassController extends Controller
 
     private function indexByType(Request $request, string $type)
     {
-        $activeYear = AcademicYear::where('is_active', true)->first();
+        // Get all training years (simplified - no batches)
+        $years = TrainingYear::orderByDesc('name')->get();
         
-        // Cek apakah di URL ada parameter '?year=' 
-        if ($request->has('year')) {
-            $selectedYearId = $request->query('year');
-        } else {
-            $selectedYearId = $activeYear?->id;
-        }
-
-        // Get selected batch from URL
-        $selectedBatchId = $request->query('batch');
-
-        $years = AcademicYear::orderByDesc('id')->get();
+        // Get selected year from URL or default to first year
+        $selectedYearId = $request->query('year');
+        $selectedYear = null;
         
-        // Load batches that students in the selected academic year belong to
-        $batches = collect();
         if ($selectedYearId) {
-            // Get distinct training_batch_ids from students in this academic year and type
-            $batchIds = Student::where('academic_year_id', $selectedYearId)
-                ->where('type', $type)
-                ->whereNotNull('training_batch_id')
-                ->distinct()
-                ->pluck('training_batch_id');
-            
-            $batches = TrainingBatch::whereIn('id', $batchIds)
-                ->orderBy('start_date')
-                ->get();
+            $selectedYear = $years->firstWhere('id', (int) $selectedYearId);
         }
 
-        $studentsQuery = Student::with(['user', 'academicYear', 'trainingBatch'])
+        // Query students
+        $studentsQuery = Student::with(['user', 'academicYear', 'trainingYear'])
             ->where('type', $type);
 
-        // Filter by year
+        // Filter by training year
         if ($selectedYearId) {
-            $studentsQuery->where('academic_year_id', $selectedYearId);
-        }
-
-        // Filter by batch
-        if ($selectedBatchId) {
-            $studentsQuery->where('training_batch_id', $selectedBatchId);
+            $studentsQuery->where('training_year_id', $selectedYearId);
         }
 
         if ($request->filled('search')) {
@@ -81,19 +58,12 @@ class ClassController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $selectedYear = $selectedYearId ? $years->firstWhere('id', (int) $selectedYearId) : null;
-        $selectedBatch = $selectedBatchId ? $batches->firstWhere('id', (int) $selectedBatchId) : null;
-
         return view('admin.classes.' . $type, [
             'students' => $students,
             'type' => $type,
             'years' => $years,
-            'batches' => $batches,
-            'activeYear' => $activeYear,
             'selectedYear' => $selectedYear,
             'selectedYearId' => $selectedYearId,
-            'selectedBatch' => $selectedBatch,
-            'selectedBatchId' => $selectedBatchId,
         ]);
     }
 }

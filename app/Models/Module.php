@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Course;
 use App\Models\Chapter;
+use App\Models\TrainingYear;
 
 class Module extends Model
 {
@@ -14,11 +15,12 @@ class Module extends Model
     // Izinkan kolom-kolom ini diisi
     protected $fillable = [
         'course_id',
-        'training_batch_id',
+        'training_year_id',
         'title',
         'subtitle',
         'description',
         'file_path',
+        'original_filename',
         'file_type',
         'class_type',
     ];
@@ -28,9 +30,9 @@ class Module extends Model
         return $this->belongsTo(Course::class);
     }
 
-    public function trainingBatch()
+    public function trainingYear()
     {
-        return $this->belongsTo(TrainingBatch::class);
+        return $this->belongsTo(TrainingYear::class);
     }
 
     public function chapters()

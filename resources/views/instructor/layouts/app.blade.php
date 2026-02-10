@@ -51,7 +51,7 @@
 
                     <a href="{{ route('instructor.modules.index') }}" 
                        class="{{ request()->routeIs('instructor.modules*') ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-gray-400 hover:text-[#d4af37] border-b-2 border-transparent' }} px-1 pt-1 text-sm font-bold transition duration-150 h-full flex items-center">
-                        Gudang Materi
+                        Gudang Modul
                     </a>
 
                     <a href="{{ route('instructor.quizzes.index') }}" 

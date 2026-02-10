@@ -137,8 +137,8 @@
                         <span class="text-white font-bold px-2 py-0.5 rounded bg-[#1e293b]">{{ $quiz->passing_score }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-[#1e293b]/50">
-                        <span class="text-gray-500">Gelombang</span>
-                        <span class="text-white font-medium">{{ $quiz->trainingBatch->name ?? 'Semua' }}</span>
+                        <span class="text-gray-500">Tahun</span>
+                        <span class="text-white font-medium">{{ $quiz->trainingYear->name ?? 'Semua' }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-[#1e293b]/50">
                         <span class="text-gray-500">Dibuat</span>
@@ -188,17 +188,6 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             @endif
                         </span>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-400">Kode Akses</span>
-                        <span class="w-6 h-6 rounded-full flex items-center justify-center {{ $quiz->access_code ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-600/20 text-gray-500' }}">
-                            @if($quiz->access_code)
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            @else
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                            @endif
-                        </span>
-                    </div>
                 </div>
             </div>
         </div>

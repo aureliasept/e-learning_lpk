@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->foreignId('training_batch_id')->nullable()->after('course_id')->constrained('training_batches')->onDelete('set null');
+            // Changed: Use training_year_id instead of training_batch_id
+            $table->foreignId('training_year_id')->nullable()->after('course_id')->constrained('training_years')->onDelete('set null');
             $table->enum('class_type', ['reguler', 'karyawan', 'both'])->default('both')->after('file_type');
         });
     }
@@ -23,8 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->dropForeign(['training_batch_id']);
-            $table->dropColumn(['training_batch_id', 'class_type']);
+            $table->dropForeign(['training_year_id']);
+            $table->dropColumn(['training_year_id', 'class_type']);
         });
     }
 };

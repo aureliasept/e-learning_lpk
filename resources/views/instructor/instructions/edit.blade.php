@@ -3,15 +3,7 @@
 @section('title', 'Edit Instruksi')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ 
-    isTask: {{ $instruction->is_task ? 'true' : 'false' }},
-    years: {{ $trainingYears->toJson() }},
-    selectedYear: {{ $instruction->trainingBatch?->training_year_id ?? 'null' }},
-    get batches() {
-        let yr = this.years.find(y => y.id == this.selectedYear);
-        return yr ? yr.batches : [];
-    }
-}">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ isTask: {{ $instruction->is_task ? 'true' : 'false' }} }">
 
     {{-- Breadcrumb --}}
     <nav class="flex items-center space-x-2 text-sm mb-6">
@@ -69,32 +61,19 @@
             <div class="p-6 border-b border-[#1e293b]">
                 <h2 class="text-lg font-bold text-white">Target Instruksi</h2>
             </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- Year --}}
                 <div>
                     <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                         Tahun Periode <span class="text-red-400">*</span>
                     </label>
-                    <select x-model="selectedYear" 
+                    <select name="training_year_id" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @foreach($trainingYears as $year)
-                            <option value="{{ $year->id }}" {{ $instruction->trainingBatch?->training_year_id == $year->id ? 'selected' : '' }}>
+                            <option value="{{ $year->id }}" {{ old('training_year_id', $instruction->training_year_id) == $year->id ? 'selected' : '' }}>
                                 {{ $year->name }}
                             </option>
                         @endforeach
-                    </select>
-                </div>
-
-                {{-- Batch --}}
-                <div>
-                    <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                        Gelombang <span class="text-red-400">*</span>
-                    </label>
-                    <select name="training_batch_id" required
-                        class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                        <template x-for="batch in batches" :key="batch.id">
-                            <option :value="batch.id" x-text="batch.name" :selected="batch.id == {{ $instruction->training_batch_id }}"></option>
-                        </template>
                     </select>
                 </div>
 
@@ -106,7 +85,7 @@
                     <select name="class_type" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @if($canTeachReguler && $canTeachKaryawan)
-                            <option value="both" {{ $instruction->class_type == 'both' ? 'selected' : '' }}>Keduanya (Reguler & Karyawan)</option>
+                            <option value="all" {{ $instruction->class_type == 'all' || $instruction->class_type == 'both' ? 'selected' : '' }}>Semua (Reguler & Karyawan)</option>
                             <option value="reguler" {{ $instruction->class_type == 'reguler' ? 'selected' : '' }}>Reguler</option>
                             <option value="karyawan" {{ $instruction->class_type == 'karyawan' ? 'selected' : '' }}>Karyawan</option>
                         @elseif($canTeachReguler)
@@ -166,7 +145,7 @@
                     </label>
                     <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.jpg,.jpeg,.png"
                         class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#1e293b] file:text-gray-300 hover:file:bg-[#334155]">
-                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 10MB.</p>
+                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 50MB.</p>
                 </div>
             </div>
         </div>
@@ -199,9 +178,11 @@
                             <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                                 Deadline <span class="text-red-400">*</span>
                             </label>
-                            <input type="datetime-local" name="deadline" 
-                                value="{{ old('deadline', $instruction->deadline?->format('Y-m-d\TH:i')) }}"
-                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                            <input type="text" name="deadline" id="deadline-picker" 
+                                value="{{ old('deadline', $instruction->deadline?->format('d/m/Y H:i')) }}"
+                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all"
+                                placeholder="dd/mm/yyyy HH:mm">
+                            <p class="text-xs text-gray-500 mt-1">Format: dd/mm/yyyy HH:mm WIB</p>
                         </div>
 
                         {{-- Response Type --}}
@@ -238,3 +219,23 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#deadline-picker", {
+            enableTime: true,
+            dateFormat: "d/m/Y H:i",
+            time_24hr: true,
+            allowInput: true,
+            theme: "dark",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
+    });
+</script>
+@endpush

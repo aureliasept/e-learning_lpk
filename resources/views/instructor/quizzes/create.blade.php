@@ -81,14 +81,14 @@
                     </div>
                     <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                            Gelombang Peserta
+                            Tahun Pelatihan
                         </label>
-                        <select name="training_batch_id" 
+                        <select name="training_year_id" 
                             class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
-                            <option value="">Semua Gelombang</option>
-                            @foreach($batches as $batch)
-                                <option value="{{ $batch->id }}" {{ old('training_batch_id', $quiz->training_batch_id ?? '') == $batch->id ? 'selected' : '' }}>
-                                    {{ $batch->trainingYear->name ?? '' }} - {{ $batch->name }}
+                            <option value="">Semua Tahun</option>
+                            @foreach($trainingYears as $year)
+                                <option value="{{ $year->id }}" {{ old('training_year_id', $quiz->training_year_id ?? '') == $year->id ? 'selected' : '' }}>
+                                    {{ $year->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -121,26 +121,6 @@
                 <div class="pt-6 border-t border-[#1e293b]">
                     <h3 class="text-sm font-bold text-white mb-4">Pengaturan Lanjutan</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {{-- Access Code Toggle --}}
-                        <div x-data="{ useCode: {{ isset($quiz) && $quiz->access_code ? 'true' : 'false' }} }">
-                            <label class="flex items-center gap-3 cursor-pointer mb-2">
-                                <input type="checkbox" name="use_access_code" value="1" x-model="useCode"
-                                    {{ old('use_access_code', isset($quiz) && $quiz->access_code ? true : false) ? 'checked' : '' }}
-                                    class="w-5 h-5 rounded border-[#1e293b] bg-[#0b1221] text-[#d4af37] focus:ring-[#d4af37]/50">
-                                <span class="text-white text-sm font-medium">Gunakan Kode Akses (Token)</span>
-                            </label>
-                            <p class="text-xs text-gray-500 ml-8">Siswa perlu memasukkan kode 6 digit sebelum mengerjakan</p>
-                            @if(isset($quiz) && $quiz->access_code)
-                                <div x-show="useCode" class="mt-3 ml-8 flex items-center gap-2">
-                                    <span class="px-3 py-2 bg-[#0b1221] border border-[#1e293b] rounded-lg text-[#d4af37] font-mono font-bold tracking-widest">{{ $quiz->access_code }}</span>
-                                    <form action="{{ route('instructor.quizzes.regenerate_code', $quiz) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="text-xs text-gray-400 hover:text-[#d4af37]">🔄 Generate Baru</button>
-                                    </form>
-                                </div>
-                            @endif
-                        </div>
-
                         {{-- Show Answers Toggle --}}
                         <div>
                             <label class="flex items-center gap-3 cursor-pointer mb-2">

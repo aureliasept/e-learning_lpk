@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Portal Peserta') - LPK Garuda Bakti</title>
+    <title>@yield('title', 'Portal Siswa') - LPK Garuda Bakti</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,14 +44,14 @@
                         Papan Instruksi
                     </a>
 
+                    <a href="{{ route('student.modules.index') }}" 
+                       class="{{ request()->routeIs('student.modules*') ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-gray-400 hover:text-[#d4af37] border-b-2 border-transparent' }} px-1 pt-1 text-sm font-bold transition duration-150 h-full flex items-center">
+                        Gudang Modul
+                    </a>
+
                     <a href="{{ route('student.exam.index') }}" 
                        class="{{ request()->routeIs('student.exam*') ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-gray-400 hover:text-[#d4af37] border-b-2 border-transparent' }} px-1 pt-1 text-sm font-bold transition duration-150 h-full flex items-center">
                         Quiz
-                    </a>
-
-                    <a href="{{ route('student.news.index') }}" 
-                       class="{{ request()->routeIs('student.news*') ? 'text-[#d4af37] border-b-2 border-[#d4af37]' : 'text-gray-400 hover:text-[#d4af37] border-b-2 border-transparent' }} px-1 pt-1 text-sm font-bold transition duration-150 h-full flex items-center">
-                        Berita
                     </a>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" @click.away="open = false" class="flex items-center text-sm font-medium text-gray-300 hover:text-[#d4af37] focus:outline-none transition">
                         <span class="mr-3 text-right">
-                            <span class="block text-[10px] text-[#d4af37] font-bold uppercase tracking-wider">Peserta</span>
+                            <span class="block text-[10px] text-[#d4af37] font-bold uppercase tracking-wider">Siswa</span>
                             <span class="block font-semibold leading-tight">{{ Auth::user()->name }}</span>
                         </span>
                         <div class="h-9 w-9 rounded-full bg-[#1e293b] flex items-center justify-center border border-[#d4af37]">
@@ -93,8 +93,8 @@
                 <div x-show="mobileOpen" @click.away="mobileOpen = false" class="absolute top-20 left-0 right-0 bg-[#0f172a] border-b border-[#1e293b] py-2 z-50" style="display: none;">
                     <a href="{{ route('student.dashboard') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Dashboard</a>
                     <a href="{{ route('student.instructions.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Papan Instruksi</a>
+                    <a href="{{ route('student.modules.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Gudang Modul</a>
                     <a href="{{ route('student.exam.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Quiz</a>
-                    <a href="{{ route('student.news.index') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Berita</a>
                     <hr class="my-2 border-[#1e293b]">
                     <a href="{{ route('student.profile.edit') }}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#1e293b] hover:text-[#d4af37]">Profil Saya</a>
                     <form method="POST" action="{{ route('logout') }}">

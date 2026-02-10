@@ -7,7 +7,7 @@ use App\Imports\QuestionImport;
 use App\Models\Option;
 use App\Models\Question;
 use App\Models\Quiz;
-use App\Models\TrainingBatch;
+use App\Models\TrainingYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,7 @@ class QuizController extends Controller
     public function index()
     {
         $quizzes = Quiz::where('instructor_id', Auth::id())
-            ->with(['trainingBatch', 'questions'])
+            ->with(['trainingYear', 'questions'])
             ->latest()
             ->paginate(10);
 
@@ -35,11 +35,9 @@ class QuizController extends Controller
      */
     public function create()
     {
-        $batches = TrainingBatch::with('trainingYear')
-            ->orderBy('id', 'desc')
-            ->get();
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
 
-        return view('instructor.quizzes.create', compact('batches'));
+        return view('instructor.quizzes.create', compact('trainingYears'));
     }
 
     /**
@@ -51,7 +49,7 @@ class QuizController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1|max:300',
-            'training_batch_id' => 'nullable|exists:training_batches,id',
+            'training_year_id' => 'nullable|exists:training_years,id',
             'passing_score' => 'required|integer|min:0|max:100',
             'use_access_code' => 'nullable|boolean',
             'show_answers_after' => 'nullable|boolean',
@@ -61,7 +59,7 @@ class QuizController extends Controller
             'questions.*.question_text' => 'required_with:questions|string',
             'questions.*.explanation' => 'nullable|string',
             'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'questions.*.audio' => 'nullable|mimes:mp3,wav,ogg|max:10240',
+            'questions.*.audio' => 'nullable|mimes:mp3,wav,ogg|max:51200',
             'questions.*.options' => 'required_with:questions|array|min:2',
             'questions.*.options.*.text' => 'required_with:questions.*.options|string',
             'questions.*.correct_option' => 'required_with:questions|integer|min:0',
@@ -80,7 +78,7 @@ class QuizController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'duration_minutes' => $validated['duration_minutes'],
-                'training_batch_id' => $validated['training_batch_id'],
+                'training_year_id' => $validated['training_year_id'],
                 'instructor_id' => Auth::id(),
                 'passing_score' => $validated['passing_score'],
                 'is_active' => true,
@@ -145,7 +143,7 @@ class QuizController extends Controller
     {
         $this->authorize('view', $quiz);
         
-        $quiz->load(['questions.options', 'trainingBatch', 'attempts.student.user']);
+        $quiz->load(['questions.options', 'trainingYear', 'attempts.student.user']);
 
         // Calculate analytics
         $analytics = $this->calculateAnalytics($quiz);
@@ -233,11 +231,9 @@ class QuizController extends Controller
         $this->authorize('update', $quiz);
         
         $quiz->load('questions.options');
-        $batches = TrainingBatch::with('trainingYear')
-            ->orderBy('id', 'desc')
-            ->get();
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
 
-        return view('instructor.quizzes.edit', compact('quiz', 'batches'));
+        return view('instructor.quizzes.edit', compact('quiz', 'trainingYears'));
     }
 
     /**
@@ -251,7 +247,7 @@ class QuizController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1|max:300',
-            'training_batch_id' => 'nullable|exists:training_batches,id',
+            'training_year_id' => 'nullable|exists:training_years,id',
             'passing_score' => 'required|integer|min:0|max:100',
             'is_active' => 'boolean',
             'use_access_code' => 'nullable|boolean',
@@ -265,7 +261,7 @@ class QuizController extends Controller
             'questions.*.existing_image' => 'nullable|string',
             'questions.*.existing_audio' => 'nullable|string',
             'questions.*.image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'questions.*.audio' => 'nullable|mimes:mp3,wav,ogg|max:10240',
+            'questions.*.audio' => 'nullable|mimes:mp3,wav,ogg|max:51200',
             'questions.*.options' => 'required|array|min:2',
             'questions.*.options.*.text' => 'required|string',
             'questions.*.correct_option' => 'required|integer|min:0',
@@ -286,7 +282,7 @@ class QuizController extends Controller
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'duration_minutes' => $validated['duration_minutes'],
-                'training_batch_id' => $validated['training_batch_id'],
+                'training_year_id' => $validated['training_year_id'],
                 'passing_score' => $validated['passing_score'],
                 'is_active' => $validated['is_active'] ?? true,
                 'access_code' => $accessCode,

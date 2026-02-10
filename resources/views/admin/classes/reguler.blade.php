@@ -31,35 +31,18 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
-                {{-- Filter Periode & Gelombang --}}
+                {{-- Filter Tahun Pelatihan --}}
                 <form method="GET" action="{{ route('admin.classes.reguler') }}" class="flex flex-wrap items-center gap-3">
-                    <label class="text-xs font-bold uppercase text-gray-400 whitespace-nowrap">Periode</label>
+                    <label class="text-xs font-bold uppercase text-gray-400 whitespace-nowrap">Tahun</label>
                     <select name="year" onchange="this.form.submit()" 
                         class="bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all min-w-[160px]">
-                        <option value="">Semua Periode</option>
+                        <option value="">Semua Tahun</option>
                         @foreach($years as $year)
                             <option value="{{ $year->id }}" {{ (string) $selectedYearId === (string) $year->id ? 'selected' : '' }}>
-                                {{ $year->name }}{{ $year->is_active ? ' ✓' : '' }}
+                                {{ $year->name }}
                             </option>
                         @endforeach
                     </select>
-
-                    <label class="text-xs font-bold uppercase text-gray-400 whitespace-nowrap">Gelombang</label>
-                    <select name="batch" onchange="this.form.submit()" 
-                        class="bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all min-w-[160px]"
-                        {{ !$selectedYearId ? 'disabled' : '' }}>
-                        <option value="">Semua Gelombang</option>
-                        @foreach($batches as $batch)
-                            <option value="{{ $batch->id }}" {{ (string) ($selectedBatchId ?? '') === (string) $batch->id ? 'selected' : '' }}>
-                                {{ $batch->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    
-                    {{-- Hidden field to preserve year when changing batch --}}
-                    @if($selectedYearId && request('batch'))
-                        <input type="hidden" name="year" value="{{ $selectedYearId }}">
-                    @endif
                 </form>
 
                 {{-- Tombol Tambah --}}
@@ -103,7 +86,7 @@
                             </svg>
                         </div>
                         <div>
-                            <p class="text-sm font-semibold text-white leading-none">{{ $selectedYear->name ?? 'Semua' }}{{ $selectedBatch ? ' / ' . $selectedBatch->name : '' }}</p>
+                            <p class="text-sm font-semibold text-white leading-none">{{ $selectedYear->name ?? 'Semua' }}</p>
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider">Filter</p>
                         </div>
                     </div>
@@ -121,25 +104,22 @@
                     <thead>
                         <tr class="bg-[#0b1221]/80 border-b border-[#1e293b]">
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Nama</th>
-                            <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Email</th>
+                            <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">NIK</th>
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">JK</th>
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">No Telepon</th>
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Kelas</th>
-                            <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Gelombang</th>
+                            <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Tahun</th>
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider">Tgl Masuk</th>
                             <th class="px-5 py-4 text-[#d4af37] text-xs font-bold uppercase tracking-wider text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#1e293b]/70">
                         @forelse($students as $student)
-                        @php
-                            $isActive = $student->academicYear && $student->academicYear->is_active;
-                        @endphp
                         <tr class="hover:bg-[#1e293b]/40 transition-all duration-200 group">
                             <td class="px-5 py-4">
                                 <span class="font-medium text-white text-sm">{{ $student->user->name ?? '-' }}</span>
                             </td>
-                            <td class="px-5 py-4 text-gray-400 text-sm">{{ $student->user->email ?? '-' }}</td>
+                            <td class="px-5 py-4 text-gray-400 text-sm font-mono">{{ $student->user->nik ?? '-' }}</td>
                             <td class="px-5 py-4 text-center">
                                 @if($student->gender === 'L')
                                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-bold">L</span>
@@ -156,9 +136,9 @@
                                 </span>
                             </td>
                             <td class="px-5 py-4 text-center">
-                                @if($student->trainingBatch)
+                                @if($student->trainingYear)
                                     <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-semibold">
-                                        {{ $student->trainingBatch->name }}
+                                        {{ $student->trainingYear->name }}
                                     </span>
                                 @else
                                     <span class="text-gray-500 text-sm">-</span>
@@ -192,7 +172,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="px-5 py-16 text-center">
+                            <td colspan="8" class="px-5 py-16 text-center">
                                 <div class="flex flex-col items-center justify-center gap-4">
                                     <div class="h-16 w-16 rounded-full bg-[#1e293b] flex items-center justify-center">
                                         <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,19 +197,6 @@
                 {{ $students->withQueryString()->links() }}
             </div>
             @endif
-        </div>
-
-        {{-- Legend --}}
-        <div class="mt-6 flex flex-wrap items-center gap-6 text-xs text-gray-400">
-            <span class="font-medium text-gray-300">Keterangan Periode:</span>
-            <span class="inline-flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                Periode Aktif
-            </span>
-            <span class="inline-flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-gray-500"></span>
-                Periode Lampau
-            </span>
         </div>
     </div>
 @endsection

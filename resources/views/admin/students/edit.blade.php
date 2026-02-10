@@ -12,7 +12,7 @@
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <a href="{{ route('admin.classes.' . $student->type, ['year' => $student->academic_year_id]) }}" class="text-gray-400 hover:text-[#d4af37] transition">Kelas {{ ucfirst($student->type) }}</a>
+        <a href="{{ route('admin.classes.' . $student->type) }}" class="text-gray-400 hover:text-[#d4af37] transition">Kelas {{ ucfirst($student->type) }}</a>
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
@@ -68,20 +68,35 @@
 
                     <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                            Email <span class="text-red-400">*</span>
+                            NIK (Nomor Induk Kependudukan) <span class="text-red-400">*</span>
                         </label>
-                        <input type="email" name="email" value="{{ old('email', $student->user->email) }}" required
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                        <input type="text" name="nik" value="{{ old('nik', $student->user->nik) }}" required placeholder="16 digit angka NIK"
+                            maxlength="16" pattern="\d{16}" inputmode="numeric"
+                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all font-mono tracking-wider">
+                        <p class="mt-1 text-xs text-gray-500">NIK digunakan untuk login siswa</p>
+                        @error('nik')
+                            <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                        Password Baru
-                    </label>
-                    <input type="text" name="password" placeholder="Kosongkan jika tidak ingin mengubah password" 
-                        class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
-                    <p class="mt-2 text-xs text-gray-500">Kosongkan jika tidak ingin mengubah password</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
+                            Email (Opsional)
+                        </label>
+                        <input type="email" name="email" value="{{ old('email', $student->user->email) }}" placeholder="email@siswa.com"
+                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
+                            Password Baru
+                        </label>
+                        <input type="text" name="password" placeholder="Kosongkan jika tidak ingin mengubah" 
+                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
+                        <p class="mt-2 text-xs text-gray-500">Kosongkan jika tidak ingin mengubah password</p>
+                    </div>
                 </div>
             </div>
 
@@ -90,50 +105,35 @@
                 <h2 class="text-sm font-bold text-[#d4af37] uppercase tracking-wider">Biodata & Akademik</h2>
             </div>
 
-            <div class="p-8 space-y-6" x-data="chainedDropdown()">
-                {{-- Chained Dropdown: Tahun → Gelombang --}}
+            <div class="p-8 space-y-6">
+                {{-- Tahun Pelatihan --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                            Tahun Pelatihan <span class="text-red-400">*</span>
+                            Tahun Pelatihan (Angkatan)
                         </label>
-                        <select x-model="selectedYear" @change="fetchBatches()" 
+                        <select name="training_year_id"
                             class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none">
                             <option value="">Pilih Tahun</option>
-                            @foreach($trainingYears ?? [] as $year)
-                                <option value="{{ $year->id }}" {{ (string) old('training_year_id', $selectedTrainingYearId) === (string) $year->id ? 'selected' : '' }}>
-                                    {{ $year->name }}{{ $year->is_active ? ' (Aktif)' : '' }}
+                            @foreach($trainingYears ?? [] as $trainingYear)
+                                <option value="{{ $trainingYear->id }}" {{ old('training_year_id', $selectedTrainingYearId ?? '') == $trainingYear->id ? 'selected' : '' }}>
+                                    {{ $trainingYear->name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                            Gelombang <span class="text-red-400">*</span>
-                        </label>
-                        <select name="training_batch_id" x-model="selectedBatch" :disabled="!selectedYear || loading"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all appearance-none disabled:opacity-50">
-                            <option value="">Pilih Gelombang</option>
-                            <template x-for="batch in batches" :key="batch.id">
-                                <option :value="batch.id" x-text="batch.name" :selected="batch.id == '{{ old('training_batch_id', $selectedBatchId) }}'"></option>
-                            </template>
-                        </select>
-                        <p x-show="loading" class="text-xs text-gray-500 mt-2">Memuat gelombang...</p>
-                        @error('training_batch_id')
-                            <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                {{-- Hidden field for legacy academic_year_id --}}
-                <input type="hidden" name="academic_year_id" value="{{ old('academic_year_id', $student->academic_year_id) }}">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">Tanggal Masuk</label>
-                        <input type="date" name="entry_date" value="{{ old('entry_date', $student->entry_date ? $student->entry_date->format('Y-m-d') : '') }}"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                        <div class="relative">
+                            <input type="text" id="entry_date_picker" name="entry_date" value="{{ old('entry_date', $student->entry_date ? $student->entry_date->format('d/m/Y') : '') }}" placeholder="dd/mm/yyyy"
+                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
                         @error('entry_date')
                             <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
                         @enderror
@@ -190,8 +190,15 @@
 
                     <div>
                         <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">Tanggal Lahir</label>
-                        <input type="date" name="birth_date" value="{{ old('birth_date', $student->birth_date ? $student->birth_date->format('Y-m-d') : '') }}"
-                            class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] transition-all">
+                        <div class="relative">
+                            <input type="text" id="birth_date_picker" name="birth_date" value="{{ old('birth_date', $student->birth_date ? $student->birth_date->format('d/m/Y') : '') }}" placeholder="dd/mm/yyyy"
+                                class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37] placeholder-gray-600 transition-all">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                <svg class="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -203,7 +210,7 @@
 
                 {{-- Footer Actions --}}
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-4 border-t border-[#1e293b] pt-6">
-                    <a href="{{ route('admin.classes.' . $student->type, ['year' => $student->academic_year_id]) }}" 
+                    <a href="{{ route('admin.classes.' . $student->type) }}" 
                         class="inline-flex justify-center items-center px-6 py-3 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] hover:border-[#d4af37] transition-all duration-200 text-sm font-bold">
                         BATAL
                     </a>
@@ -220,35 +227,28 @@
 
 @push('scripts')
 <script>
-    function chainedDropdown() {
-        return {
-            selectedYear: '{{ old('training_year_id', $selectedTrainingYearId ?? '') }}',
-            selectedBatch: '{{ old('training_batch_id', $selectedBatchId ?? '') }}',
-            batches: @json($trainingBatches ?? []),
-            loading: false,
-
-            fetchBatches() {
-                if (!this.selectedYear) {
-                    this.batches = [];
-                    this.selectedBatch = '';
-                    return;
-                }
-
-                this.loading = true;
-                this.selectedBatch = '';
-
-                fetch(`/admin/api/batches-by-year/${this.selectedYear}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        this.batches = data;
-                        this.loading = false;
-                    })
-                    .catch(error => {
-                        console.error('Error fetching batches:', error);
-                        this.loading = false;
-                    });
+// Initialize Flatpickr date pickers
+document.addEventListener('DOMContentLoaded', function() {
+    const flatpickrConfig = {
+        dateFormat: "d/m/Y",
+        allowInput: true,
+        locale: {
+            firstDayOfWeek: 1,
+            weekdays: {
+                shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+            },
+            months: {
+                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
             }
-        }
-    }
+        },
+        theme: "dark",
+        disableMobile: true
+    };
+    
+    flatpickr("#entry_date_picker", flatpickrConfig);
+    flatpickr("#birth_date_picker", flatpickrConfig);
+});
 </script>
 @endpush

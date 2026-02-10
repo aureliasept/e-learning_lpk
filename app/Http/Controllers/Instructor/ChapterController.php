@@ -54,7 +54,7 @@ class ChapterController extends Controller
             'module_id' => ['required', 'exists:modules,id'],
             'title' => ['required', 'string', 'max:255'],
             'instruction' => ['required', 'string'],
-            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:51200'],
         ]);
 
         $module = Module::findOrFail($validated['module_id']);
@@ -137,7 +137,7 @@ class ChapterController extends Controller
             'module_id' => ['required', 'exists:modules,id'],
             'title' => ['required', 'string', 'max:255'],
             'instruction' => ['required', 'string'],
-            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:51200'],
         ]);
 
         $module = Module::findOrFail($validated['module_id']);

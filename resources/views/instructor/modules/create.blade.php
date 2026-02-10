@@ -3,14 +3,7 @@
 @section('title', 'Tambah Materi')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ 
-    years: {{ $trainingYears->toJson() }},
-    selectedYear: {{ $selectedYearId ?? $trainingYears->first()?->id ?? 'null' }},
-    get batches() {
-        let yr = this.years.find(y => y.id == this.selectedYear);
-        return yr ? yr.batches : [];
-    }
-}">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
     {{-- Breadcrumb --}}
     <nav class="flex items-center space-x-2 text-sm mb-6">
@@ -22,7 +15,7 @@
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <a href="{{ route('instructor.modules.index') }}" class="text-gray-400 hover:text-[#d4af37] transition">Gudang Materi</a>
+        <a href="{{ route('instructor.modules.index') }}" class="text-gray-400 hover:text-[#d4af37] transition">Gudang Modul</a>
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
@@ -67,30 +60,19 @@
             <div class="p-6 border-b border-[#1e293b]">
                 <h2 class="text-lg font-bold text-white">Target Materi</h2>
             </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- Year --}}
                 <div>
                     <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
                         Tahun Periode <span class="text-red-400">*</span>
                     </label>
-                    <select x-model="selectedYear" 
+                    <select name="training_year_id" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @foreach($trainingYears as $year)
-                            <option value="{{ $year->id }}">{{ $year->name }}</option>
+                            <option value="{{ $year->id }}" {{ old('training_year_id', $selectedYearId ?? '') == $year->id ? 'selected' : '' }}>
+                                {{ $year->name }}
+                            </option>
                         @endforeach
-                    </select>
-                </div>
-
-                {{-- Batch --}}
-                <div>
-                    <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                        Gelombang <span class="text-red-400">*</span>
-                    </label>
-                    <select name="training_batch_id" required
-                        class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                        <template x-for="batch in batches" :key="batch.id">
-                            <option :value="batch.id" x-text="batch.name" :selected="batch.id == {{ $selectedBatchId ?? 'null' }}"></option>
-                        </template>
                     </select>
                 </div>
 
@@ -102,7 +84,7 @@
                     <select name="class_type" required
                         class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
                         @if($canTeachReguler && $canTeachKaryawan)
-                            <option value="both">Keduanya (Reguler & Karyawan)</option>
+                            <option value="all">Semua (Reguler & Karyawan)</option>
                             <option value="reguler">Reguler</option>
                             <option value="karyawan">Karyawan</option>
                         @elseif($canTeachReguler)
@@ -143,20 +125,6 @@
                         placeholder="Tulis deskripsi materi...">{{ old('description') }}</textarea>
                 </div>
 
-                {{-- Course (Optional) --}}
-                <div>
-                    <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
-                        Kategori/Kursus (Opsional)
-                    </label>
-                    <select name="course_id"
-                        class="w-full bg-[#0b1221] border border-[#1e293b] text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#d4af37]/50 focus:border-[#d4af37]">
-                        <option value="">-- Tanpa Kategori --</option>
-                        @foreach($courses as $course)
-                            <option value="{{ $course->id }}">{{ $course->title ?? $course->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 {{-- File Upload --}}
                 <div>
                     <label class="block text-[#d4af37] text-xs font-bold uppercase mb-2 tracking-wider">
@@ -164,7 +132,7 @@
                     </label>
                     <input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.jpg,.jpeg,.png"
                         class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#1e293b] file:text-gray-300 hover:file:bg-[#334155]">
-                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 10MB.</p>
+                    <p class="text-xs text-gray-500 mt-2">Format: PDF, DOC, PPT, XLS, ZIP, Gambar. Max 50MB.</p>
                 </div>
             </div>
         </div>

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('course_instructions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('training_batch_id')->constrained()->onDelete('cascade');
+            // Changed: Use training_year_id instead of training_batch_id
+            $table->foreignId('training_year_id')->nullable()->constrained('training_years')->onDelete('cascade');
             $table->foreignId('instructor_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();

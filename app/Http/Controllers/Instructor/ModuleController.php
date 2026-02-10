@@ -3,251 +3,290 @@
 namespace App\Http\Controllers\Instructor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
-use App\Models\Module;
-use App\Models\Teacher;
-use App\Models\TrainingBatch;
-use App\Models\TrainingYear;
 use Illuminate\Http\Request;
+use App\Models\Module;
+use App\Models\Course;
+use App\Models\Teacher;
+use App\Models\TrainingYear;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ModuleController extends Controller
 {
     /**
-     * Display a listing of modules with filtering.
+     * Menampilkan daftar modul/materi.
      */
     public function index(Request $request)
     {
+        // Ambil data instruktur yang sedang login
         $user = Auth::user();
+        
+        // Cek apakah user ini terdaftar sebagai teacher
         $teacher = Teacher::where('user_id', $user->id)->first();
 
-        // Get all training years
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
+        if (!$teacher) {
+            return redirect()->back()->with('error', 'Data instruktur tidak ditemukan.');
+        }
 
-        // Get filters from request
+        // Ambil semua tahun pelatihan
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
+        
+        // Handle filter dari request
         $selectedYearId = $request->get('year', $trainingYears->first()?->id);
-        $selectedBatchId = $request->get('batch');
         $selectedClassType = $request->get('class_type', 'all');
+        
+        // Cek akses kelas berdasarkan data teacher
+        $canTeachReguler = $teacher->is_reguler ?? false;
+        $canTeachKaryawan = $teacher->is_karyawan ?? false;
 
-        // Get selected year and its batches
-        $selectedYear = $trainingYears->firstWhere('id', $selectedYearId);
-        $batches = $selectedYear ? $selectedYear->batches : collect();
+        // Query modul berdasarkan training_year_id dan class_type yang sesuai akses instruktur
+        $modulesQuery = Module::query();
 
-        // Auto-select first batch if none selected
-        if (!$selectedBatchId && $batches->count() > 0) {
-            $selectedBatchId = $batches->first()->id;
-        }
-        $selectedBatch = $batches->firstWhere('id', $selectedBatchId);
-
-        // Query modules
-        $query = Module::with('trainingBatch.trainingYear')
-            ->orderBy('created_at', 'desc');
-
-        if ($selectedBatchId) {
-            $query->where('training_batch_id', $selectedBatchId);
+        // Filter berdasarkan tahun pelatihan
+        if ($selectedYearId) {
+            $modulesQuery->where('training_year_id', $selectedYearId);
         }
 
-        if ($selectedClassType && $selectedClassType !== 'all') {
-            $query->where('class_type', $selectedClassType);
+        // Filter berdasarkan class_type yang dipilih user
+        if ($selectedClassType !== 'all') {
+            $modulesQuery->where(function($query) use ($selectedClassType) {
+                $query->where('class_type', $selectedClassType)
+                      ->orWhere('class_type', 'both');
+            });
         }
 
-        $modules = $query->paginate(10)->withQueryString();
+        // Filter berdasarkan akses kelas instruktur
+        if ($canTeachReguler && !$canTeachKaryawan) {
+            // Hanya bisa lihat reguler dan both
+            $modulesQuery->whereIn('class_type', ['reguler', 'both']);
+        } elseif ($canTeachKaryawan && !$canTeachReguler) {
+            // Hanya bisa lihat karyawan dan both
+            $modulesQuery->whereIn('class_type', ['karyawan', 'both']);
+        }
+        // Jika keduanya true atau keduanya false, tampilkan semua
 
-        // Get all courses for select dropdown
-        $courses = Course::orderBy('title')->get();
-
-        // Check which class types this instructor can access
-        $canTeachReguler = $teacher ? $teacher->is_reguler : false;
-        $canTeachKaryawan = $teacher ? $teacher->is_karyawan : false;
+        $modules = $modulesQuery->latest()->paginate(10)->appends($request->query());
 
         return view('instructor.modules.index', compact(
-            'trainingYears',
-            'selectedYear',
-            'selectedYearId',
-            'batches',
-            'selectedBatch',
-            'selectedBatchId',
-            'selectedClassType',
             'modules',
-            'courses',
-            'teacher',
+            'trainingYears',
+            'selectedYearId',
+            'selectedClassType',
             'canTeachReguler',
             'canTeachKaryawan'
         ));
     }
 
     /**
-     * Show the form for creating a new module.
+     * Menampilkan form tambah modul baru.
      */
     public function create(Request $request)
     {
         $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->first();
+        
+        // Ambil daftar kursus/kelas milik instruktur ini untuk dropdown
+        $courses = Course::where('teacher_id', $teacher->id)->get();
 
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
-        $courses = Course::orderBy('title')->get();
-
-        $selectedYearId = $request->get('year');
-        $selectedBatchId = $request->get('batch');
-
-        $canTeachReguler = $teacher ? $teacher->is_reguler : false;
-        $canTeachKaryawan = $teacher ? $teacher->is_karyawan : false;
+        // Ambil semua tahun pelatihan
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
+        
+        // Handle filter dari request
+        $selectedYearId = $request->get('year', $trainingYears->first()?->id);
+        
+        // Cek akses kelas berdasarkan data teacher
+        $canTeachReguler = $teacher->is_reguler ?? false;
+        $canTeachKaryawan = $teacher->is_karyawan ?? false;
 
         return view('instructor.modules.create', compact(
-            'trainingYears',
             'courses',
+            'trainingYears',
             'selectedYearId',
-            'selectedBatchId',
-            'teacher',
             'canTeachReguler',
             'canTeachKaryawan'
         ));
     }
 
     /**
-     * Store a newly created module in storage.
+     * Menyimpan modul baru ke database.
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $teacher = Teacher::where('user_id', $user->id)->first();
-
-        $validated = $request->validate([
-            'training_batch_id' => 'required|exists:training_batches,id',
-            'course_id' => 'nullable|exists:courses,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
-            'class_type' => 'required|in:reguler,karyawan,both',
+        // 1. VALIDASI (Batas 50MB / 51200 KB)
+        $request->validate([
+            'training_year_id' => 'required|exists:training_years,id',
+            'class_type'       => 'required|in:all,reguler,karyawan',
+            'title'            => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'file'             => [
+                'nullable',
+                'file',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png',
+                'max:51200' // <--- 50MB
+            ],
+        ], [
+            'training_year_id.required' => 'Tahun periode wajib dipilih.',
+            'class_type.required' => 'Tipe kelas wajib dipilih.',
+            'title.required' => 'Judul materi wajib diisi.',
+            'file.max' => 'Ukuran file terlalu besar! Maksimal 50MB.',
+            'file.mimes' => 'Format file tidak didukung.',
         ]);
 
-        // Access control
-        if ($validated['class_type'] === 'reguler' && !$teacher?->is_reguler) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kelas reguler.');
-        }
-        if ($validated['class_type'] === 'karyawan' && !$teacher?->is_karyawan) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kelas karyawan.');
-        }
-        if ($validated['class_type'] === 'both' && (!$teacher?->is_reguler || !$teacher?->is_karyawan)) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kedua tipe kelas.');
-        }
+        try {
+            // 2. UPLOAD FILE (jika ada)
+            $filePath = null;
+            $fileType = null;
+            $originalFilename = null;
+            if ($request->hasFile('file')) {
+                $filePath = $request->file('file')->store('modules', 'public');
+                $fileType = $request->file('file')->getClientOriginalExtension();
+                $originalFilename = $request->file('file')->getClientOriginalName();
+            }
 
-        $filePath = null;
-        $fileType = null;
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('modules/' . $validated['training_batch_id'], 'public');
-            $fileType = $request->file('file')->getClientOriginalExtension();
+            // 3. Handle class_type (convert 'all' to 'both' for database)
+            $classType = $request->class_type === 'all' ? 'both' : $request->class_type;
+
+            // 4. SIMPAN KE DB
+            Module::create([
+                'training_year_id'  => $request->training_year_id,
+                'class_type'        => $classType,
+                'title'             => $request->title,
+                'description'       => $request->description,
+                'file_path'         => $filePath,
+                'original_filename' => $originalFilename,
+                'file_type'         => $fileType ?? 'pdf',
+            ]);
+
+            return redirect()->route('instructor.modules.index')
+                             ->with('success', 'Materi berhasil ditambahkan!');
+
+        } catch (\Exception $e) {
+            // Hapus file jika gagal simpan DB
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
-
-        Module::create([
-            'training_batch_id' => $validated['training_batch_id'],
-            'course_id' => $validated['course_id'],
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'file_path' => $filePath,
-            'file_type' => $fileType,
-            'class_type' => $validated['class_type'],
-        ]);
-
-        return redirect()->route('instructor.modules.index', [
-            'year' => TrainingBatch::find($validated['training_batch_id'])?->training_year_id,
-            'batch' => $validated['training_batch_id'],
-        ])->with('success', 'Materi berhasil ditambahkan!');
     }
 
     /**
-     * Show the form for editing the specified module.
+     * Menampilkan detail modul (opsional).
      */
-    public function edit(Module $module)
+    public function show($id)
     {
+        $module = Module::findOrFail($id);
+        return view('instructor.modules.show', compact('module'));
+    }
+
+    /**
+     * Menampilkan form edit modul.
+     */
+    public function edit($id)
+    {
+        $module = Module::findOrFail($id);
+        
         $user = Auth::user();
         $teacher = Teacher::where('user_id', $user->id)->first();
-
-        $trainingYears = TrainingYear::with('batches')->orderBy('name', 'desc')->get();
-        $courses = Course::orderBy('title')->get();
-
-        $canTeachReguler = $teacher ? $teacher->is_reguler : false;
-        $canTeachKaryawan = $teacher ? $teacher->is_karyawan : false;
+        
+        // Ambil semua tahun pelatihan
+        $trainingYears = TrainingYear::orderBy('name', 'desc')->get();
+        
+        // Cek akses kelas berdasarkan data teacher
+        $canTeachReguler = $teacher->is_reguler ?? false;
+        $canTeachKaryawan = $teacher->is_karyawan ?? false;
 
         return view('instructor.modules.edit', compact(
             'module',
             'trainingYears',
-            'courses',
-            'teacher',
             'canTeachReguler',
             'canTeachKaryawan'
         ));
     }
 
     /**
-     * Update the specified module in storage.
+     * Mengupdate modul yang sudah ada.
      */
-    public function update(Request $request, Module $module)
+    public function update(Request $request, $id)
     {
-        $user = Auth::user();
-        $teacher = Teacher::where('user_id', $user->id)->first();
+        $module = Module::findOrFail($id);
 
-        $validated = $request->validate([
-            'training_batch_id' => 'required|exists:training_batches,id',
-            'course_id' => 'nullable|exists:courses,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png|max:10240',
-            'class_type' => 'required|in:reguler,karyawan,both',
+        // 1. VALIDASI UPDATE
+        $request->validate([
+            'training_year_id' => 'required|exists:training_years,id',
+            'class_type'       => 'required|in:all,reguler,karyawan',
+            'title'            => 'required|string|max:255',
+            'description'      => 'nullable|string',
+            'file'             => [
+                'nullable', // File boleh kosong jika tidak ingin diganti
+                'file',
+                'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip,rar,jpg,jpeg,png',
+                'max:51200' // <--- 50MB
+            ],
+        ], [
+            'training_year_id.required' => 'Tahun periode wajib dipilih.',
+            'class_type.required' => 'Tipe kelas wajib dipilih.',
+            'title.required' => 'Judul materi wajib diisi.',
+            'file.max' => 'Ukuran file terlalu besar! Maksimal 50MB.',
+            'file.mimes' => 'Format file tidak didukung.',
         ]);
 
-        // Access control
-        if ($validated['class_type'] === 'reguler' && !$teacher?->is_reguler) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kelas reguler.');
-        }
-        if ($validated['class_type'] === 'karyawan' && !$teacher?->is_karyawan) {
-            return back()->with('error', 'Anda tidak memiliki akses ke kelas karyawan.');
-        }
+        try {
+            // Handle class_type (convert 'all' to 'both' for database)
+            $classType = $request->class_type === 'all' ? 'both' : $request->class_type;
 
-        $filePath = $module->file_path;
-        $fileType = $module->file_type;
-        if ($request->hasFile('file')) {
-            if ($filePath) {
-                Storage::disk('public')->delete($filePath);
+            // Update data
+            $module->training_year_id = $request->training_year_id;
+            $module->class_type = $classType;
+            $module->title = $request->title;
+            $module->description = $request->description;
+
+            // CEK JIKA ADA FILE BARU
+            if ($request->hasFile('file')) {
+                // Hapus file lama dari storage
+                if ($module->file_path && Storage::disk('public')->exists($module->file_path)) {
+                    Storage::disk('public')->delete($module->file_path);
+                }
+
+                // Upload file baru
+                $filePath = $request->file('file')->store('modules', 'public');
+                
+                // Update info file di DB
+                $module->file_path = $filePath;
+                $module->original_filename = $request->file('file')->getClientOriginalName();
+                $module->file_type = $request->file('file')->getClientOriginalExtension();
             }
-            $filePath = $request->file('file')->store('modules/' . $validated['training_batch_id'], 'public');
-            $fileType = $request->file('file')->getClientOriginalExtension();
+
+            $module->save();
+
+            return redirect()->route('instructor.modules.index')
+                             ->with('success', 'Materi berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal update materi: ' . $e->getMessage())->withInput();
         }
-
-        $module->update([
-            'training_batch_id' => $validated['training_batch_id'],
-            'course_id' => $validated['course_id'],
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'file_path' => $filePath,
-            'file_type' => $fileType,
-            'class_type' => $validated['class_type'],
-        ]);
-
-        return redirect()->route('instructor.modules.index', [
-            'year' => TrainingBatch::find($validated['training_batch_id'])?->training_year_id,
-            'batch' => $validated['training_batch_id'],
-        ])->with('success', 'Materi berhasil diperbarui!');
     }
 
     /**
-     * Remove the specified module from storage.
+     * Menghapus modul dan filenya.
      */
-    public function destroy(Module $module)
+    public function destroy($id)
     {
-        $batchId = $module->training_batch_id;
-        $yearId = $module->trainingBatch?->training_year_id;
+        $module = Module::findOrFail($id);
 
-        if ($module->file_path) {
-            Storage::disk('public')->delete($module->file_path);
+        try {
+            // 1. Hapus file fisik di storage
+            if ($module->file_path && Storage::disk('public')->exists($module->file_path)) {
+                Storage::disk('public')->delete($module->file_path);
+            }
+
+            // 2. Hapus record di database
+            $module->delete();
+
+            return redirect()->route('instructor.modules.index')
+                             ->with('success', 'Modul berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menghapus modul: ' . $e->getMessage());
         }
-
-        $module->delete();
-
-        return redirect()->route('instructor.modules.index', [
-            'year' => $yearId,
-            'batch' => $batchId,
-        ])->with('success', 'Materi berhasil dihapus!');
     }
 }

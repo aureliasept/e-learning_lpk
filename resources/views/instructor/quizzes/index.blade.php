@@ -81,8 +81,8 @@
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-white mb-1">{{ $quiz->title }}</h3>
-                                @if($quiz->trainingBatch)
-                                    <p class="text-xs text-gray-500">{{ $quiz->trainingBatch->name }}</p>
+                                @if($quiz->trainingYear)
+                                    <p class="text-xs text-gray-500">{{ $quiz->trainingYear->name }}</p>
                                 @endif
                             </div>
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold {{ $quiz->is_active ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-gray-500/10 text-gray-400 border border-gray-500/30' }}">
@@ -161,11 +161,7 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-bold text-white mb-2">Belum ada Quiz</h3>
-                <p class="text-gray-400 text-sm mb-6">Buat quiz pertama Anda untuk ujian pilihan ganda.</p>
-                <a href="{{ route('instructor.quizzes.create') }}" 
-                    class="inline-flex justify-center items-center px-6 py-3 rounded-xl border border-[#d4af37] text-[#d4af37] hover:text-white hover:bg-[#d4af37] hover:border-[#d4af37] transition-all duration-200 text-sm font-bold">
-                    BUAT QUIZ BARU
-                </a>
+                <p class="text-gray-400 text-sm">Buat quiz pertama Anda untuk ujian pilihan ganda.</p>
             </div>
         </div>
     @endif

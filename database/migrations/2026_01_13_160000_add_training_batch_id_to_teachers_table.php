@@ -10,14 +10,14 @@ return new class extends Migration
      * Run the migrations.
      * 
      * Menghubungkan Instruktur dengan Sistem Periode Pelatihan
-     * Instruktur dapat di-assign ke Gelombang tertentu
+     * Instruktur di-assign ke Tahun Pelatihan (bukan gelombang)
      */
     public function up(): void
     {
         Schema::table('teachers', function (Blueprint $table) {
-            // Tambah kolom training_batch_id - instruktur bisa di-assign ke gelombang tertentu
-            $table->foreignId('training_batch_id')->nullable()->after('is_karyawan')
-                  ->constrained('training_batches')->onDelete('set null');
+            // Tambah kolom training_year_id - instruktur di-assign ke tahun pelatihan
+            $table->foreignId('training_year_id')->nullable()->after('is_karyawan')
+                  ->constrained('training_years')->onDelete('set null');
         });
     }
 
@@ -27,8 +27,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('teachers', function (Blueprint $table) {
-            $table->dropForeign(['training_batch_id']);
-            $table->dropColumn('training_batch_id');
+            $table->dropForeign(['training_year_id']);
+            $table->dropColumn('training_year_id');
         });
     }
 };
